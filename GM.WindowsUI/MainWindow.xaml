@@ -1,0 +1,29 @@
+﻿<Window x:Class="GM.WindowsUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GM.WindowsUI"
+        mc:Ignorable="d"
+        Title="GM Vehicle Control" Height="481.809" Width="309">
+    <Grid>
+        <Label x:Name="_1G1FZ6S01K4131782_No_Name_" Content="Vehicle VIN" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="txtVin" HorizontalAlignment="Left" Height="23" Margin="97,104,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="144"/>
+        <PasswordBox Name="txtPin" HorizontalAlignment="Left" Margin="97,140,0,0" VerticalAlignment="Top" Width="144"/>
+        <Label Content="OnStar PIN" HorizontalAlignment="Left" Margin="22,135,0,0" VerticalAlignment="Top"/>
+        <Button Name="btnLogin" Content="Login" HorizontalAlignment="Left" Margin="42,41,0,0" VerticalAlignment="Top" Width="153" Click="BtnLogin_Click" Height="46"/>
+
+        <GroupBox Header="Actions" Name="grpActions" HorizontalAlignment="Left" Height="231" Margin="22,166,0,0" VerticalAlignment="Top" Width="219">
+            <Grid>
+                <Button x:Name="btnLock" Content="Lock Doors" HorizontalAlignment="Left" Margin="14,13,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnLock_Click"/>
+                <Button x:Name="btnStart" Content="Remote Start" HorizontalAlignment="Left" Margin="14,78,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnStart_Click"/>
+                <Button x:Name="btnAlert" Content="Set off Alarm" HorizontalAlignment="Left" Margin="14,145,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnAlert_Click"/>
+                <Button x:Name="btnUnlock" Content="Unlock Doors" HorizontalAlignment="Left" Margin="114,13,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnUnlock_Click"/>
+                <Button x:Name="btnStop" Content="Remote Stop" HorizontalAlignment="Left" Margin="114,78,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnStop_Click"/>
+                <Button x:Name="btnCancelAlert" Content="Stop Alarm" HorizontalAlignment="Left" Margin="114,145,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnCancelAlert_Click"/>
+            </Grid>
+        </GroupBox>
+        <Label Name ="lblStatus" Content="Not Logged In" HorizontalAlignment="Left" Margin="10,402,0,0" VerticalAlignment="Top" FontSize="24" Width="281"/>
+
+    </Grid>
+</Window>
