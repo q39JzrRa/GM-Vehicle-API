@@ -28,3 +28,5 @@ TODO: determine how app elevates creds when using fingerprint - does the app sav
 TODO: there is a means of refreshing a token using a pin...
 
 TODO: determine how long elevation lasts, keep track and re-elevate when required
+
+TODO: consider using MS JWT implementation
