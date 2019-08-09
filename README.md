@@ -1,6 +1,8 @@
 # GM-Vehicle-API
 Remote API for supported General Motors vehicles
 
+This is the API used by the myChevrolet, myBuick, myGMC, myCadillac, My Vauxhall and myOpel apps.
+
 Reverse engineered C# API for accessing General Motors vehicles supporting OnStar connected services.
 Obviously this is unsanctioned. Use at your own risk.
 
