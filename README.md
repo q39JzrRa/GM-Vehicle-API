@@ -16,9 +16,6 @@ Alternatively you can extract and decrypt them from the Android .apk file.
 This is very early, unpolished, incomplete code. No judgement please.
 
 
-
-TODO: add vehicle selection
-
 TODO: use diagnostic list from config, rather than hard-coded
 
 TODO: implement lots more actions
