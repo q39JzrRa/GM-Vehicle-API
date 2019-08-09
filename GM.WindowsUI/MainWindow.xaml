@@ -7,8 +7,6 @@
         mc:Ignorable="d"
         Title="GM Vehicle Control" Height="481.809" Width="559" Loaded="Window_Loaded">
     <Grid>
-        <Label x:Name="_1G1FZ6S01K4131782_No_Name_" Content="Vehicle VIN" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="txtVin" HorizontalAlignment="Left" Height="23" Margin="97,104,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="144"/>
         <PasswordBox Name="txtPin" HorizontalAlignment="Left" Margin="97,140,0,0" VerticalAlignment="Top" Width="144"/>
         <Label Content="OnStar PIN" HorizontalAlignment="Left" Margin="22,135,0,0" VerticalAlignment="Top"/>
         <Button Name="btnLogin" Content="Login" HorizontalAlignment="Left" Margin="42,41,0,0" VerticalAlignment="Top" Width="153" Click="BtnLogin_Click" Height="46"/>
@@ -24,6 +22,8 @@
             </Grid>
         </GroupBox>
         <Label Name ="lblStatus" Content="Not Logged In" HorizontalAlignment="Left" Margin="10,402,0,0" VerticalAlignment="Top" FontSize="24" Width="281"/>
+        <ComboBox x:Name="cmbVehicle" HorizontalAlignment="Left" Margin="97,101,0,0" VerticalAlignment="Top" Width="399" SelectionChanged="CmbVehicle_SelectionChanged"/>
+        <Label Content="Vehicle" HorizontalAlignment="Left" Margin="42,101,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>
