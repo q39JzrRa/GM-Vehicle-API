@@ -32,7 +32,13 @@ namespace GM.Api
         public string url { get; set; }
         public string required_client_scope { get; set; }
         public string optional_client_scope { get; set; }
+        /// <summary>
+        /// do not use this
+        /// </summary>
         public string client_id { get; set; }
+        /// <summary>
+        /// do not use this
+        /// </summary>
         public string client_secret { get; set; }
     }
 

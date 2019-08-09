@@ -24,6 +24,7 @@ namespace GM.WindowsUI
     public partial class MainWindow : Window
     {
         GMClient _client;
+        
 
         GM.Api.GmConfiguration _globalConfig;
 
@@ -37,35 +38,82 @@ namespace GM.WindowsUI
         {
             InitializeComponent();
             LoadConfiguration();
+            LoadBrand();
+            CreateClient();
+            grpActions.IsEnabled = false;
+        }
 
-            if (string.IsNullOrEmpty(Properties.Settings.Default.SavedBrand))
+
+        void CreateClient()
+        {
+            if (string.IsNullOrEmpty(Properties.Settings.Default.DeviceId))
+            {
+                Properties.Settings.Default.DeviceId = Guid.NewGuid().ToString();
+                Properties.Settings.Default.Save();
+            }
+
+            //todo: maybe the client reads the config and takes the brand and device id as param?
+            _client = new GMClient(_clientCredentials.client_id, Properties.Settings.Default.DeviceId, _clientCredentials.client_secret, _apiConfig.url);
+            _client.TokenUpdateCallback = TokenUpdateHandler;
+
+            if (!string.IsNullOrEmpty(Properties.Settings.Default.LoginData))
+            {
+                LoginData ld = null;
+
+                try
+                {
+                    ld = JsonConvert.DeserializeObject<LoginData>(Properties.Settings.Default.LoginData);
+                }
+                catch (Exception ex)
+                {
+                    Properties.Settings.Default.LoginData = null;
+                    Properties.Settings.Default.Save();
+                }
+
+                if (ld != null)
+                {
+                    _client.LoginData = ld;
+                }
+            }
+
+        }
+
+
+        async Task TokenUpdateHandler(LoginData loginData)
+        {
+            if (loginData != null)
+            {
+                Properties.Settings.Default.LoginData = JsonConvert.SerializeObject(loginData);
+                Properties.Settings.Default.Save();
+            }
+        }
+
+
+        void LoadBrand()
+        {
+            if (string.IsNullOrEmpty(Properties.Settings.Default.Brand))
             {
                 var bw = new BrandWindow(_globalConfig);
-                if (!bw.ShowDialog().GetValueOrDefault())
+                bw.ShowDialog();
+
+                if (string.IsNullOrEmpty(bw.SelectedBrand))
                 {
                     MessageBox.Show("You must select a brand!");
                     App.Current.Shutdown();
                     return;
                 }
-                Properties.Settings.Default.SavedBrand = bw.SelectedBrand;
+
+                Properties.Settings.Default.Brand = bw.SelectedBrand;
                 Properties.Settings.Default.Save();
             }
 
-            _brand = Properties.Settings.Default.SavedBrand;
+            _brand = Properties.Settings.Default.Brand;
             _brandDisplay = _brand.Substring(0, 1).ToUpperInvariant() + _brand.Substring(1);
 
             Title = _brandDisplay + " Vehicle Control";
 
             _clientCredentials = _globalConfig.brand_client_info[_brand];
             _apiConfig = (from f in _globalConfig.configs where f.name.Equals(_brand, StringComparison.OrdinalIgnoreCase) select f).FirstOrDefault();
-
-
-
-
-            txtVin.Text = Properties.Settings.Default.SavedVin;
-            txtPin.Password = Properties.Settings.Default.SavedPin;
-            grpActions.IsEnabled = false;
-
         }
 
         void LoadConfiguration()
@@ -73,6 +121,7 @@ namespace GM.WindowsUI
             if (!File.Exists("config\\configuration.json"))
             {
                 MessageBox.Show("You must extract the configuration file from the GM Android App's .apk and copy it to the config folder first.", "Missing configuration");
+                //todo: this doesn't work
                 App.Current.Shutdown();
                 return;
             }
@@ -84,6 +133,7 @@ namespace GM.WindowsUI
             catch (Exception ex)
             {
                 MessageBox.Show("Error reading config file: " + ex.ToString(), "Config read error");
+                //todo: this doesn't work
                 App.Current.Shutdown();
                 return;
             }
@@ -93,17 +143,16 @@ namespace GM.WindowsUI
 
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            var wind = new LoginWindow();
+            var wind = new LoginWindow(_client);
             wind.ShowDialog();
-            if (wind.GMClient == null)
+            if (!wind.Success)
             {
                 return;
             }
 
-            _client = wind.GMClient;
-
             lblStatus.Content = "Connected";
             grpActions.IsEnabled = true;
+            btnLogin.IsEnabled = false;
         }
 
         private async void BtnLock_Click(object sender, RoutedEventArgs e)
@@ -213,6 +262,17 @@ namespace GM.WindowsUI
             }
             grpActions.IsEnabled = true;
             btnLogin.IsEnabled = true;
+        }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (await _client.RefreshToken())
+            {
+                lblStatus.Content = "Connected";
+                grpActions.IsEnabled = true;
+                btnLogin.IsEnabled = false;
+            }
+
         }
     }
 }

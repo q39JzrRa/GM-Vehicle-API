@@ -26,12 +26,12 @@ namespace GM.WindowsUI.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SavedBrand {
+        public string Brand {
             get {
-                return ((string)(this["SavedBrand"]));
+                return ((string)(this["Brand"]));
             }
             set {
-                this["SavedBrand"] = value;
+                this["Brand"] = value;
             }
         }
         
@@ -50,24 +50,36 @@ namespace GM.WindowsUI.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SavedVin {
+        public string VehicleCache {
             get {
-                return ((string)(this["SavedVin"]));
+                return ((string)(this["VehicleCache"]));
             }
             set {
-                this["SavedVin"] = value;
+                this["VehicleCache"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SavedPin {
+        public string LoginData {
             get {
-                return ((string)(this["SavedPin"]));
+                return ((string)(this["LoginData"]));
             }
             set {
-                this["SavedPin"] = value;
+                this["LoginData"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Vin {
+            get {
+                return ((string)(this["Vin"]));
+            }
+            set {
+                this["Vin"] = value;
             }
         }
     }

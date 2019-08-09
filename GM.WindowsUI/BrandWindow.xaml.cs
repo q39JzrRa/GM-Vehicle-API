@@ -42,6 +42,7 @@ namespace GM.WindowsUI
         {
             if (lstBrands.SelectedItem == null) return;
             SelectedBrand = ((string)lstBrands.SelectedItem).ToLowerInvariant();
+            this.Close();
         }
     }
 }
