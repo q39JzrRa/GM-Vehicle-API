@@ -2,16 +2,19 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GM.WindowsUI.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="SavedBrand" Type="System.String" Scope="User">
+    <Setting Name="Brand" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="DeviceId" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SavedVin" Type="System.String" Scope="User">
+    <Setting Name="VehicleCache" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SavedPin" Type="System.String" Scope="User">
+    <Setting Name="LoginData" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Vin" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
   </Settings>

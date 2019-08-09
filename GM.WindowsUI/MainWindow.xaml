@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GM.WindowsUI"
         mc:Ignorable="d"
-        Title="GM Vehicle Control" Height="481.809" Width="309">
+        Title="GM Vehicle Control" Height="481.809" Width="559" Loaded="Window_Loaded">
     <Grid>
         <Label x:Name="_1G1FZ6S01K4131782_No_Name_" Content="Vehicle VIN" HorizontalAlignment="Left" Margin="22,104,0,0" VerticalAlignment="Top"/>
         <TextBox Name="txtVin" HorizontalAlignment="Left" Height="23" Margin="97,104,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="144"/>

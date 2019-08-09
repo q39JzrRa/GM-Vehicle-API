@@ -20,27 +20,23 @@ namespace GM.WindowsUI
     /// </summary>
     public partial class LoginWindow : Window
     {
-        public GMClient GMClient { get; set; }
+        GMClient _client;
 
-        public LoginWindow()
+        public bool Success { get; private set; } = false;
+
+        public LoginWindow(GMClient client)
         {
+            _client = client;
             InitializeComponent();
-
-            //txtUsername.Text = Properties.Settings.Default.
-
         }
 
         private async void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            if (GMClient == null)
-            {
-                GMClient = helpers.CreateClient();
-            }
-
-            var success = await GMClient.Login(txtUsername.Text, txtPassword.Password);
+            var success = await _client.Login(txtUsername.Text, txtPassword.Password);
 
             if (success)
             {
+                Success = true;
                 this.Close();
                 return;
             }

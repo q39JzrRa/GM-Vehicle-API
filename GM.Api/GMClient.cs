@@ -3,6 +3,7 @@ using JWT.Algorithms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,8 +13,9 @@ namespace GM.Api
 {
     public class GMClient
     {
-        //TODO: handle token renewals
         //TODO: maybe throw exceptions?
+        //TODO: all calls need to catch a 401, attempt refresh, try one more time and fail on second 401
+        //TODO: all calls need to catch transient exceptions and retry a certain number of times
 
         string _clientId;
         string _deviceId;
@@ -21,15 +23,27 @@ namespace GM.Api
         string _apiUrl;
         string _host;
 
-        HttpClient _client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = true, AutomaticDecompression = System.Net.DecompressionMethods.GZip });
-
-
-        LoginData _loginData = null;
+        HttpClient _client;
 
         bool _isUpgraded = false;
         bool _isConnected = false;
 
+        public LoginData LoginData { get; set; } = null;
+
+        public Func<LoginData, Task> TokenUpdateCallback { get; set; }
+        
+
+        public GMClient(GmConfiguration config, string brand, string deviceId)
+        {
+            throw new NotImplementedException();
+        }
+
         public GMClient(string clientId, string deviceId, string clientSecret, string apiUrl)
+        {
+            Setup(clientId, deviceId, clientSecret, apiUrl);
+        }
+
+        void Setup(string clientId, string deviceId, string clientSecret, string apiUrl)
         {
             _clientId = clientId;
             _deviceId = deviceId;
@@ -37,32 +51,43 @@ namespace GM.Api
             _apiUrl = apiUrl;
             var uri = new Uri(_apiUrl);
             _host = uri.Host;
-
-
-            _client.DefaultRequestHeaders.AcceptEncoding.SetValue("gzip");
-            _client.DefaultRequestHeaders.Accept.SetValue("application/json");
-            _client.DefaultRequestHeaders.AcceptLanguage.SetValue("en-US");
-            _client.DefaultRequestHeaders.UserAgent.ParseAdd("okhttp/3.9.0");
-            _client.DefaultRequestHeaders.Host = _host;
-            _client.DefaultRequestHeaders.MaxForwards = 10;
-            _client.DefaultRequestHeaders.ExpectContinue = false;
+            _client = CreateClient(_host);
         }
 
 
+        static HttpClient CreateClient(string host)
+        {
+            var client = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = true, AutomaticDecompression = System.Net.DecompressionMethods.GZip });
 
+            client.DefaultRequestHeaders.AcceptEncoding.SetValue("gzip");
+            client.DefaultRequestHeaders.Accept.SetValue("application/json");
+            client.DefaultRequestHeaders.AcceptLanguage.SetValue("en-US");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("okhttp/3.9.0");
+            client.DefaultRequestHeaders.Host = host;
+            client.DefaultRequestHeaders.MaxForwards = 10;
+            client.DefaultRequestHeaders.ExpectContinue = false;
+            return client;
+        }
 
 
         async Task<Commandresponse> VehicleConnect(string vin)
         {
+            if (LoginData == null) throw new InvalidOperationException("Login required");
+            if (LoginData.IsExpired)
+            {
+                if (!await RefreshToken())
+                {
+                    throw new InvalidOperationException("Token refresh failed");
+                }
+            }
+
             var req = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl}/v1/account/vehicles/{vin}/commands/connect");
             req.Content = new StringContent("{}", Encoding.UTF8, "application/json");
-
-
 
             var response = await _client.SendAsync(req);
 
 
-
+            
             if (response.IsSuccessStatusCode)
             {
                 var respString = await response.Content.ReadAsStringAsync();
@@ -153,13 +178,18 @@ namespace GM.Api
 
             var loginTokenData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
 
-            _loginData = loginTokenData;
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _loginData.access_token);
+            LoginData = loginTokenData;
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.access_token);
+
+            //todo: should this be a copy rather than a reference?
+            await TokenUpdateCallback?.Invoke(LoginData);
             return true;
         }
 
         public async Task<bool> RefreshToken()
         {
+            if (LoginData == null) return false;
+
             var payload = new RefreshTokenPayload()
             {
                 client_id = _clientId,
@@ -168,7 +198,7 @@ namespace GM.Api
                 nonce = helpers.GenerateNonce(),
                 scope = "onstar gmoc commerce user_trailer",
                 timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
-                assertion = _loginData.id_token
+                assertion = LoginData.id_token
             };
 
             var token = _jwtTool.EncodeToken(payload);
@@ -211,14 +241,18 @@ namespace GM.Api
 
             var refreshData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
 
-            _loginData.access_token = refreshData.access_token;
-            _loginData.IssuedUtc = refreshData.IssuedUtc;
-            _loginData.expires_in = refreshData.expires_in;
+            LoginData.access_token = refreshData.access_token;
+            LoginData.IssuedUtc = refreshData.IssuedUtc;
+            LoginData.expires_in = refreshData.expires_in;
 
             //should we assume the upgrade status is broken?
 
 
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _loginData.access_token);
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.access_token);
+
+            //todo: should this be a copy rather than a reference?
+            await TokenUpdateCallback?.Invoke(LoginData);
+
             return true;
         }
 
@@ -231,6 +265,15 @@ namespace GM.Api
 
         public async Task<Commandresponse> InitiateCommand(string vin, string pin, string command)
         {
+            if (LoginData == null) throw new InvalidOperationException("Login required");
+            if (LoginData.IsExpired)
+            {
+                if (!await RefreshToken())
+                {
+                    throw new InvalidOperationException("Token refresh failed");
+                }
+            }
+
             if (!_isConnected)
             {
                 await VehicleConnect(vin);
@@ -312,6 +355,14 @@ namespace GM.Api
 
         public async Task<Commandresponse> WaitForCommandCompletion(string statusUrl)
         {
+            if (LoginData == null) throw new InvalidOperationException("Login required");
+            if (LoginData.IsExpired)
+            {
+                if (!await RefreshToken())
+                {
+                    throw new InvalidOperationException("Token refresh failed");
+                }
+            }
             int nullResponseCount = 0;
 
             while (true)
@@ -369,8 +420,45 @@ namespace GM.Api
         }
 
 
+        public async Task<IEnumerable<Vehicle>> GetVehicles()
+        {
+            if (LoginData == null) throw new InvalidOperationException("Login required");
+            if (LoginData.IsExpired)
+            {
+                if (!await RefreshToken())
+                {
+                    throw new InvalidOperationException("Token refresh failed");
+                }
+            }
+
+            //these could be parameterized, but we better stick with what the app does
+            var resp = await _client.GetAsync($"{_apiUrl}/v1/account/vehicles?offset=0&limit=10&includeCommands=true&includeEntitlements=true&includeModules=true");
+
+            if (resp.IsSuccessStatusCode)
+            {
+                var outerResult = await resp.Content.ReadAsAsync<VehiclesResponse>();
+                if (outerResult.vehicles != null && outerResult.vehicles.vehicle != null && outerResult.vehicles.vehicle.Length > 0)
+                {
+                    return outerResult.vehicles.vehicle;
+                }
+            }
+
+            return null;
+        }
+
+
+
         public async Task<Diagnosticresponse[]> GetDiagnostics(string vin, string pin)
         {
+            if (LoginData == null) throw new InvalidOperationException("Login required");
+            if (LoginData.IsExpired)
+            {
+                if (!await RefreshToken())
+                {
+                    throw new InvalidOperationException("Token refresh failed");
+                }
+            }
+
             var result = await InitiateCommandAndWait(vin, pin, "diagnostics");
             if (result == null) return null;
             if ("success".Equals(result.status, StringComparison.OrdinalIgnoreCase))

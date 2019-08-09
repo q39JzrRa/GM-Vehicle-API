@@ -18,8 +18,13 @@ namespace GM.Api
 
         [JsonIgnore]
         public DateTime IssuedUtc { get; set; } = DateTime.UtcNow;
+
+        // subtracting 2 seconds for safety
         [JsonIgnore]
-        public DateTime ExpiresAtUtc => (IssuedUtc + TimeSpan.FromSeconds(expires_in));
+        public DateTime ExpiresAtUtc => (IssuedUtc + TimeSpan.FromSeconds(expires_in - 2));
+
+
+        public bool IsExpired => (DateTime.UtcNow >= ExpiresAtUtc);
 
 
     }

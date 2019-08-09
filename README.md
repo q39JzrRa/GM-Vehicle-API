@@ -12,3 +12,12 @@ Alternatively you can extract and decrypt them from the Android .apk file.
 
 
 This is very early, unpolished, incomplete code. No judgement please.
+
+
+
+TODO: add vehicle selection
+TODO: use diagnostic list from config, rather than hard-coded
+TODO: implement lots more actions
+TODO: determine how app elevates creds when using fingerprint - does the app save the pin?
+TODO: there is a means of refreshing a token using a pin...
+TODO: determine how long elevation lasts, keep track and re-elevate when required
