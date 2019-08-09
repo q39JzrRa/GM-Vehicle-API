@@ -10,8 +10,6 @@ namespace GM.Api
 {
     static class helpers
     {
-
-
         public static string GenerateNonce()
         {
             //17.25 bytes = 130 bits
@@ -21,30 +19,16 @@ namespace GM.Api
             var byteArray = new byte[17];
 
             provider.GetBytes(byteArray);
-            var nonce = Base32.ToBase32String(byteArray);
+            var nonce = Tokens.Base32.ToBase32String(byteArray);
             return nonce.ToLower().Substring(0, 26);
         }
 
-
-        public static IJwtEncoder GetJwtEncoder()
-        {
-            IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
-            IJsonSerializer serializer = new CustomJsonSerializer();
-            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
-            return new JwtEncoder(algorithm, serializer, urlEncoder);
-        }
-
-        public static IJwtDecoder GetJwtDecoder()
-        {
-            IJsonSerializer serializer = new CustomJsonSerializer();
-            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
-            IDateTimeProvider dateTimeProvider = new UtcDateTimeProvider();
-            IJwtValidator validator = new JwtValidator(serializer, dateTimeProvider);
-            return new JwtDecoder(serializer, validator, urlEncoder);
-        }
-
-
-
+        /// <summary>
+        /// Set an HTTP header to a single value, clearing any existing values
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="headerValue"></param>
+        /// <param name="value"></param>
         public static void SetValue<T>(this HttpHeaderValueCollection<T> headerValue, string value) where T: class
         {
             headerValue.Clear();

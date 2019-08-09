@@ -1,4 +1,6 @@
 ﻿using GM.Api;
+using GM.Api.Models;
+using GM.Api.Tokens;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -26,10 +28,10 @@ namespace GM.WindowsUI
         GMClient _client;
         
 
-        GM.Api.GmConfiguration _globalConfig;
+        GmConfiguration _globalConfig;
 
-        GM.Api.ApiConfig _apiConfig;
-        GM.Api.BrandClientInfo _clientCredentials;
+        ApiConfig _apiConfig;
+        BrandClientInfo _clientCredentials;
 
         string _brand;
         string _brandDisplay;
@@ -128,7 +130,7 @@ namespace GM.WindowsUI
 
             try
             {
-                _globalConfig = JsonConvert.DeserializeObject<GM.Api.GmConfiguration>(File.ReadAllText("Config\\configuration.json", Encoding.UTF8));
+                _globalConfig = JsonConvert.DeserializeObject<GmConfiguration>(File.ReadAllText("Config\\configuration.json", Encoding.UTF8));
             }
             catch (Exception ex)
             {

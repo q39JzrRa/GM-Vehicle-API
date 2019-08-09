@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using GM.Api.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,12 +23,12 @@ namespace GM.WindowsUI
     public partial class BrandWindow : Window
     {
 
-        GM.Api.GmConfiguration _config;
+        GmConfiguration _config;
 
         public string SelectedBrand { get; set; } = null;
 
 
-        public BrandWindow(GM.Api.GmConfiguration configuration)
+        public BrandWindow(GmConfiguration configuration)
         {
             _config = configuration;
             InitializeComponent();

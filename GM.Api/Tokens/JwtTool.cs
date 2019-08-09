@@ -1,10 +1,12 @@
 ﻿using JWT;
 using JWT.Algorithms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace GM.Api
+namespace GM.Api.Tokens
 {
     class JwtTool
     {
@@ -19,7 +21,7 @@ namespace GM.Api
             _key = Encoding.ASCII.GetBytes(key);
 
             IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
-            IJsonSerializer serializer = new CustomJsonSerializer();
+            IJsonSerializer serializer = new SortedJsonSerializer();
             IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
             Encoder = new JwtEncoder(algorithm, serializer, urlEncoder);
 
@@ -44,12 +46,10 @@ namespace GM.Api
         {
             return Decoder.DecodeToObject<T>(token);
         }
-
-
-
-
-
-
-
     }
+
+
+
+
+
 }

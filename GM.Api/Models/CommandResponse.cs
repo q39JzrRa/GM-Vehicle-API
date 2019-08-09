@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GM.Api
+namespace GM.Api.Models
 {
     public class CommandResponseRoot
     {

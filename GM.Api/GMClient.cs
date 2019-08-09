@@ -1,4 +1,6 @@
-﻿using JWT;
+﻿using GM.Api.Models;
+using GM.Api.Tokens;
+using JWT;
 using JWT.Algorithms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,9 +15,9 @@ namespace GM.Api
 {
     public class GMClient
     {
-        //TODO: maybe throw exceptions?
-        //TODO: all calls need to catch a 401, attempt refresh, try one more time and fail on second 401
-        //TODO: all calls need to catch transient exceptions and retry a certain number of times
+        public static int RetryCount { get; set; } = 3;
+
+        //TODO: consistent exception throwing
 
         string _clientId;
         string _deviceId;
@@ -70,22 +72,95 @@ namespace GM.Api
         }
 
 
-        async Task<Commandresponse> VehicleConnect(string vin)
+        async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, bool noAuth = false)
         {
-            if (LoginData == null) throw new InvalidOperationException("Login required");
-            if (LoginData.IsExpired)
+            if (!noAuth)
             {
-                if (!await RefreshToken())
+                if (LoginData == null)
                 {
-                    throw new InvalidOperationException("Token refresh failed");
+                    throw new InvalidOperationException("Not Logged in");
+                }
+                if (LoginData.IsExpired)
+                {
+                    var result = await RefreshToken();
+                    if (!result)
+                    {
+                        throw new InvalidOperationException("Token refresh failed");
+                    }
                 }
             }
+            else
+            {
+                request.Headers.Authorization = null;
+            }
 
-            var req = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl}/v1/account/vehicles/{vin}/commands/connect");
-            req.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+            int attempt = 0;
+            while (attempt < RetryCount)
+            {
+                attempt++;
+                HttpResponseMessage resp = null;
+                try
+                {
+                    resp = await _client.SendAsync(request);
+                }
+                catch (Exception ex)
+                {
+                    //todo: only catch transient errors
+                    //todo: log this
+                    continue;
+                }
 
-            var response = await _client.SendAsync(req);
+                if (!resp.IsSuccessStatusCode)
+                {
+                    if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized || resp.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                    {
+                        var result = await RefreshToken();
+                        if (!result)
+                        {
+                            throw new InvalidOperationException("Token refresh failed");
+                        }
+                        continue;
+                    }
+                    else if (resp.StatusCode == System.Net.HttpStatusCode.BadGateway || resp.StatusCode == System.Net.HttpStatusCode.Conflict || resp.StatusCode == System.Net.HttpStatusCode.GatewayTimeout || resp.StatusCode == System.Net.HttpStatusCode.InternalServerError || resp.StatusCode == System.Net.HttpStatusCode.RequestTimeout || resp.StatusCode == System.Net.HttpStatusCode.ResetContent || resp.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+                    {
+                        //possible transient errors
+                        //todo: log this
+                        await Task.Delay(500);
+                        continue;
+                    }
+                    else
+                    {
+                        var respMessage = (await resp.Content.ReadAsStringAsync())??"";
+                        throw new InvalidOperationException("Request error. StatusCode: " + resp.StatusCode.ToString() + ", msg: " + respMessage);
+                    }
+                }
+                else
+                {
+                    return resp;
+                }
+            }
+            //todo: include more info
+            throw new InvalidOperationException("Request failed too many times");
+        }
 
+
+
+        async Task<HttpResponseMessage> PostAsync(string requestUri, HttpContent content, bool noAuth = false)
+        {
+            return await SendAsync(new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content }, noAuth);
+        }
+
+        async Task<HttpResponseMessage> GetAsync(string requestUri, bool noAuth = false)
+        {
+            return await SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), noAuth);
+        }
+
+
+
+
+        async Task<Commandresponse> VehicleConnect(string vin)
+        {
+            var response = await PostAsync($"{_apiUrl}/v1/account/vehicles/{vin}/commands/connect", new StringContent("{}", Encoding.UTF8, "application/json"));
 
             
             if (response.IsSuccessStatusCode)
@@ -106,22 +181,19 @@ namespace GM.Api
 
         async Task<bool> UpgradeToken(string pin)
         {
-            var payload = new UpgradeTokenPayload()
+            var payload = new LoginRequest()
             {
-                client_id = _clientId,
-                device_id = _deviceId,
-                credential = pin,
-                credential_type = "PIN",
-                nonce = helpers.GenerateNonce(),
-                timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK")
+                ClientId = _clientId,
+                DeviceId = _deviceId,
+                Credential = pin,
+                CredentialType = "PIN",
+                Nonce = helpers.GenerateNonce(),
+                Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK")
             };
 
             var token = _jwtTool.EncodeToken(payload);
 
-            var req = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl}/v1/oauth/token/upgrade");
-            req.Content = new StringContent(token, Encoding.UTF8, "text/plain");
-
-            var response = await _client.SendAsync(req);
+            var response = await PostAsync($"{_apiUrl}/v1/oauth/token/upgrade", new StringContent(token, Encoding.UTF8, "text/plain"));
 
             if (response.IsSuccessStatusCode)
             {
@@ -138,26 +210,21 @@ namespace GM.Api
 
         public async Task<bool> Login(string username, string password)
         {
-            var payload = new LoginPayload()
+            var payload = new LoginRequest()
             {
-                client_id = _clientId,
-                device_id = _deviceId,
-                grant_type = "password",
-                nonce = helpers.GenerateNonce(),
-                password = password,
-                scope = "onstar gmoc commerce user_trailer msso",
-                timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
-                username = username
+                ClientId = _clientId,
+                DeviceId = _deviceId,
+                GrantType = "password",
+                Nonce = helpers.GenerateNonce(),
+                Password = password,
+                Scope = "onstar gmoc commerce user_trailer msso",
+                Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
+                Username = username
             };
 
             var token = _jwtTool.EncodeToken(payload);
 
-
-            var req = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl}/v1/oauth/token");
-            req.Headers.Authorization = null;
-            req.Content = new StringContent(token, Encoding.UTF8, "text/plain");
-
-            var response = await _client.SendAsync(req);
+            var response = await PostAsync($"{_apiUrl}/v1/oauth/token", new StringContent(token, Encoding.UTF8, "text/plain"), true);
 
 
             string rawResponseToken = null;
@@ -179,7 +246,7 @@ namespace GM.Api
             var loginTokenData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
 
             LoginData = loginTokenData;
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.access_token);
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.AccessToken);
 
             //todo: should this be a copy rather than a reference?
             await TokenUpdateCallback?.Invoke(LoginData);
@@ -190,26 +257,20 @@ namespace GM.Api
         {
             if (LoginData == null) return false;
 
-            var payload = new RefreshTokenPayload()
+            var payload = new LoginRequest()
             {
-                client_id = _clientId,
-                device_id = _deviceId,
-                grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                nonce = helpers.GenerateNonce(),
-                scope = "onstar gmoc commerce user_trailer",
-                timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
-                assertion = LoginData.id_token
+                ClientId = _clientId,
+                DeviceId = _deviceId,
+                GrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                Nonce = helpers.GenerateNonce(),
+                Scope = "onstar gmoc commerce user_trailer",
+                Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK"),
+                Assertion = LoginData.IdToken
             };
 
             var token = _jwtTool.EncodeToken(payload);
 
-
-            var req = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl}/v1/oauth/token");
-            req.Headers.Authorization = null;
-            req.Content = new StringContent(token, Encoding.UTF8, "text/plain");
-
-            var response = await _client.SendAsync(req);
-
+            var response = await PostAsync($"{_apiUrl}/v1/oauth/token", new StringContent(token, Encoding.UTF8, "text/plain"), true);
 
             string rawResponseToken = null;
 
@@ -241,14 +302,14 @@ namespace GM.Api
 
             var refreshData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
 
-            LoginData.access_token = refreshData.access_token;
-            LoginData.IssuedUtc = refreshData.IssuedUtc;
-            LoginData.expires_in = refreshData.expires_in;
+            LoginData.AccessToken = refreshData.AccessToken;
+            LoginData.IssuedAtUtc = refreshData.IssuedAtUtc;
+            LoginData.ExpiresIn = refreshData.ExpiresIn;
 
             //should we assume the upgrade status is broken?
 
 
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.access_token);
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.AccessToken);
 
             //todo: should this be a copy rather than a reference?
             await TokenUpdateCallback?.Invoke(LoginData);
@@ -265,15 +326,6 @@ namespace GM.Api
 
         public async Task<Commandresponse> InitiateCommand(string vin, string pin, string command)
         {
-            if (LoginData == null) throw new InvalidOperationException("Login required");
-            if (LoginData.IsExpired)
-            {
-                if (!await RefreshToken())
-                {
-                    throw new InvalidOperationException("Token refresh failed");
-                }
-            }
-
             if (!_isConnected)
             {
                 await VehicleConnect(vin);
@@ -332,14 +384,8 @@ namespace GM.Api
                 reqObj = new JObject();
             }
 
+            var response = await PostAsync($"{_apiUrl}/v1/account/vehicles/{vin}/commands/{command}", new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(reqObj), Encoding.UTF8, "application/json"));
 
-
-
-            var req = new HttpRequestMessage(HttpMethod.Post, $"{_apiUrl}/v1/account/vehicles/{vin}/commands/{command}");
-
-            req.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(reqObj), Encoding.UTF8, "application/json");
-
-            var response = await _client.SendAsync(req);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -355,14 +401,6 @@ namespace GM.Api
 
         public async Task<Commandresponse> WaitForCommandCompletion(string statusUrl)
         {
-            if (LoginData == null) throw new InvalidOperationException("Login required");
-            if (LoginData.IsExpired)
-            {
-                if (!await RefreshToken())
-                {
-                    throw new InvalidOperationException("Token refresh failed");
-                }
-            }
             int nullResponseCount = 0;
 
             while (true)
@@ -404,9 +442,7 @@ namespace GM.Api
 
         async Task<Commandresponse> PollCommandStatus(string statusUrl)
         {
-            var req = new HttpRequestMessage(HttpMethod.Get, $"{statusUrl}?units=METRIC");
-
-            var response = await _client.SendAsync(req);
+            var response = await GetAsync($"{statusUrl}?units=METRIC");
 
             if (response.IsSuccessStatusCode)
             {
@@ -422,17 +458,8 @@ namespace GM.Api
 
         public async Task<IEnumerable<Vehicle>> GetVehicles()
         {
-            if (LoginData == null) throw new InvalidOperationException("Login required");
-            if (LoginData.IsExpired)
-            {
-                if (!await RefreshToken())
-                {
-                    throw new InvalidOperationException("Token refresh failed");
-                }
-            }
-
             //these could be parameterized, but we better stick with what the app does
-            var resp = await _client.GetAsync($"{_apiUrl}/v1/account/vehicles?offset=0&limit=10&includeCommands=true&includeEntitlements=true&includeModules=true");
+            var resp = await GetAsync($"{_apiUrl}/v1/account/vehicles?offset=0&limit=10&includeCommands=true&includeEntitlements=true&includeModules=true");
 
             if (resp.IsSuccessStatusCode)
             {
@@ -450,15 +477,6 @@ namespace GM.Api
 
         public async Task<Diagnosticresponse[]> GetDiagnostics(string vin, string pin)
         {
-            if (LoginData == null) throw new InvalidOperationException("Login required");
-            if (LoginData.IsExpired)
-            {
-                if (!await RefreshToken())
-                {
-                    throw new InvalidOperationException("Token refresh failed");
-                }
-            }
-
             var result = await InitiateCommandAndWait(vin, pin, "diagnostics");
             if (result == null) return null;
             if ("success".Equals(result.status, StringComparison.OrdinalIgnoreCase))
