@@ -20,11 +20,11 @@ namespace GM.WindowsUI
     /// </summary>
     public partial class LoginWindow : Window
     {
-        GMClient _client;
+        GMClientBase _client;
 
         public bool Success { get; private set; } = false;
 
-        public LoginWindow(GMClient client)
+        public LoginWindow(GMClientBase client)
         {
             _client = client;
             InitializeComponent();

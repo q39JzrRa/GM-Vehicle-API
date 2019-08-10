@@ -25,7 +25,7 @@ namespace GM.WindowsUI
     /// </summary>
     public partial class MainWindow : Window
     {
-        GMClient _client;
+        GenericGMClient _client;
         
 
         GmConfiguration _globalConfig;
@@ -39,7 +39,7 @@ namespace GM.WindowsUI
 
         Vehicle[] _vehicles = null;
 
-        Vehicle _selectedVehicle;
+        //Vehicle _selectedVehicle;
 
         public MainWindow()
         {
@@ -60,7 +60,7 @@ namespace GM.WindowsUI
             }
 
             //todo: maybe the client reads the config and takes the brand and device id as param?
-            _client = new GMClient(_clientCredentials.client_id, Properties.Settings.Default.DeviceId, _clientCredentials.client_secret, _apiConfig.url);
+            _client = new GenericGMClient(_clientCredentials.client_id, Properties.Settings.Default.DeviceId, _clientCredentials.client_secret, _apiConfig.url);
             _client.TokenUpdateCallback = TokenUpdateHandler;
 
             if (!string.IsNullOrEmpty(Properties.Settings.Default.LoginData))
@@ -173,7 +173,7 @@ namespace GM.WindowsUI
 
             foreach (var vehicle in _vehicles)
             {
-                cmbVehicle.Items.Add($"{vehicle.year} {vehicle.model} ({vehicle.vin})");
+                cmbVehicle.Items.Add($"{vehicle.Year} {vehicle.Model} ({vehicle.Vin})");
             }
 
             if (!string.IsNullOrEmpty(Properties.Settings.Default.Vin))
@@ -181,7 +181,7 @@ namespace GM.WindowsUI
                 bool found = false;
                 for (int i = 0; i < _vehicles.Length; i++)
                 {
-                    if (_vehicles[i].vin.Equals(Properties.Settings.Default.Vin, StringComparison.OrdinalIgnoreCase))
+                    if (_vehicles[i].Vin.Equals(Properties.Settings.Default.Vin, StringComparison.OrdinalIgnoreCase))
                     {
                         found = true;
                         cmbVehicle.SelectedIndex = i;
@@ -218,12 +218,35 @@ namespace GM.WindowsUI
             btnLogin.IsEnabled = false;
         }
 
+
+        async Task<bool> HandleUpgrade()
+        {
+            if (!_client.IsUpgraded)
+            {
+                if (string.IsNullOrEmpty(txtPin.Password))
+                {
+                    MessageBox.Show("OnStar PIN required");
+                    return false;
+                }
+
+                var result = await _client.UpgradeLogin(txtPin.Password);
+                if (!result)
+                {
+                    MessageBox.Show("Login upgrade failed!");
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private async void BtnLock_Click(object sender, RoutedEventArgs e)
         {
+            if (!await HandleUpgrade()) return;
+
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Locking (Please wait)";
-            var success = await _client.LockDoor(_selectedVehicle.vin, txtPin.Password);
+            var success = await _client.LockDoor(txtPin.Password);
             if (success)
             {
                 lblStatus.Content = "Locked Successfully";
@@ -239,10 +262,11 @@ namespace GM.WindowsUI
 
         private async void BtnUnlock_Click(object sender, RoutedEventArgs e)
         {
+            if (!await HandleUpgrade()) return;
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Unlocking (Please wait)";
-            var success = await _client.UnlockDoor(_selectedVehicle.vin, txtPin.Password);
+            var success = await _client.UnlockDoor(txtPin.Password);
             if (success)
             {
                 lblStatus.Content = "Unlocked Successfully";
@@ -257,10 +281,11 @@ namespace GM.WindowsUI
 
         private async void BtnStart_Click(object sender, RoutedEventArgs e)
         {
+            if (!await HandleUpgrade()) return;
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Starting (Please wait)";
-            var success = await _client.Start(_selectedVehicle.vin, txtPin.Password);
+            var success = await _client.Start(txtPin.Password);
             if (success)
             {
                 lblStatus.Content = "Started Successfully";
@@ -275,10 +300,11 @@ namespace GM.WindowsUI
 
         private async void BtnStop_Click(object sender, RoutedEventArgs e)
         {
+            if (!await HandleUpgrade()) return;
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Stopping (Please wait)";
-            var success = await _client.CancelStart(_selectedVehicle.vin, txtPin.Password);
+            var success = await _client.CancelStart(txtPin.Password);
             if (success)
             {
                 lblStatus.Content = "Stopped Successfully";
@@ -293,10 +319,11 @@ namespace GM.WindowsUI
 
         private async void BtnAlert_Click(object sender, RoutedEventArgs e)
         {
+            if (!await HandleUpgrade()) return;
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Alarming (Please wait)";
-            var success = await _client.Alert(_selectedVehicle.vin, txtPin.Password);
+            var success = await _client.Alert(txtPin.Password);
             if (success)
             {
                 lblStatus.Content = "Alarmed Successfully";
@@ -311,10 +338,11 @@ namespace GM.WindowsUI
 
         private async void BtnCancelAlert_Click(object sender, RoutedEventArgs e)
         {
+            if (!await HandleUpgrade()) return;
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Stopping Alarm (Please wait)";
-            var success = await _client.CancelAlert(_selectedVehicle.vin, txtPin.Password);
+            var success = await _client.CancelAlert(txtPin.Password);
             if (success)
             {
                 lblStatus.Content = "Alarmed Stopped Successfully";
@@ -343,18 +371,31 @@ namespace GM.WindowsUI
         {
             if (_vehicles == null || _vehicles.Length == 0 || cmbVehicle.SelectedIndex < 0)
             {
-                _selectedVehicle = null;
+                _client.ActiveVehicle = null;
                 return;
             }
 
-            _selectedVehicle = _vehicles[cmbVehicle.SelectedIndex];
+            _client.ActiveVehicle = _vehicles[cmbVehicle.SelectedIndex];
 
-            Properties.Settings.Default.Vin = _selectedVehicle.vin;
+            Properties.Settings.Default.Vin = _client.ActiveVehicle.Vin;
             Properties.Settings.Default.Save();
 
             //todo: populate available actions
             //todo: update client state instead of local variable?
 
+        }
+
+        private async void BtnDiagnostics_Click(object sender, RoutedEventArgs e)
+        {
+            if (!await HandleUpgrade()) return;
+            grpActions.IsEnabled = false;
+            btnLogin.IsEnabled = false;
+            lblStatus.Content = "Getting Diagnostics (Please Wait)...";
+            var details = await _client.GetDiagnostics();
+            txtOutput.Text = JsonConvert.SerializeObject(details, Formatting.Indented);
+
+            grpActions.IsEnabled = true;
+            btnLogin.IsEnabled = true;
         }
     }
 }

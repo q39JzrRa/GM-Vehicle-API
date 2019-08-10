@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GM.WindowsUI"
         mc:Ignorable="d"
-        Title="GM Vehicle Control" Height="481.809" Width="559" Loaded="Window_Loaded">
+        Title="GM Vehicle Control" Height="481.809" Width="662" Loaded="Window_Loaded">
     <Grid>
         <PasswordBox Name="txtPin" HorizontalAlignment="Left" Margin="97,140,0,0" VerticalAlignment="Top" Width="144"/>
         <Label Content="OnStar PIN" HorizontalAlignment="Left" Margin="22,135,0,0" VerticalAlignment="Top"/>
         <Button Name="btnLogin" Content="Login" HorizontalAlignment="Left" Margin="42,41,0,0" VerticalAlignment="Top" Width="153" Click="BtnLogin_Click" Height="46"/>
 
-        <GroupBox Header="Actions" Name="grpActions" HorizontalAlignment="Left" Height="231" Margin="22,166,0,0" VerticalAlignment="Top" Width="219">
+        <GroupBox Header="Actions" Name="grpActions" HorizontalAlignment="Left" Height="231" Margin="22,166,0,0" VerticalAlignment="Top" Width="323">
             <Grid>
                 <Button x:Name="btnLock" Content="Lock Doors" HorizontalAlignment="Left" Margin="14,13,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnLock_Click"/>
                 <Button x:Name="btnStart" Content="Remote Start" HorizontalAlignment="Left" Margin="14,78,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnStart_Click"/>
@@ -19,11 +19,14 @@
                 <Button x:Name="btnUnlock" Content="Unlock Doors" HorizontalAlignment="Left" Margin="114,13,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnUnlock_Click"/>
                 <Button x:Name="btnStop" Content="Remote Stop" HorizontalAlignment="Left" Margin="114,78,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnStop_Click"/>
                 <Button x:Name="btnCancelAlert" Content="Stop Alarm" HorizontalAlignment="Left" Margin="114,145,0,0" VerticalAlignment="Top" Width="79" Height="49" Click="BtnCancelAlert_Click"/>
+                <Button x:Name="btnDiagnostics" Content="Get Diagnostics" HorizontalAlignment="Left" Margin="205,13,0,0" VerticalAlignment="Top" Width="96" Height="49" Click="BtnDiagnostics_Click"/>
             </Grid>
         </GroupBox>
-        <Label Name ="lblStatus" Content="Not Logged In" HorizontalAlignment="Left" Margin="10,402,0,0" VerticalAlignment="Top" FontSize="24" Width="281"/>
+        <Label Name ="lblStatus" Content="Not Logged In" HorizontalAlignment="Left" Margin="10,402,0,0" VerticalAlignment="Top" FontSize="24" Width="539"/>
         <ComboBox x:Name="cmbVehicle" HorizontalAlignment="Left" Margin="97,101,0,0" VerticalAlignment="Top" Width="399" SelectionChanged="CmbVehicle_SelectionChanged"/>
         <Label Content="Vehicle" HorizontalAlignment="Left" Margin="42,101,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="txtOutput" HorizontalAlignment="Left" Height="239" Margin="362,158,0,0" VerticalAlignment="Top" Width="260" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"/>
+        <Label Content="Diag Output" HorizontalAlignment="Left" Margin="362,132,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>
