@@ -106,7 +106,7 @@ namespace GM.WindowsUI
                 if (string.IsNullOrEmpty(bw.SelectedBrand))
                 {
                     MessageBox.Show("You must select a brand!");
-                    App.Current.Shutdown();
+                    Environment.Exit(100);
                     return;
                 }
 
@@ -125,23 +125,25 @@ namespace GM.WindowsUI
 
         void LoadConfiguration()
         {
-            if (!File.Exists("config\\configuration.json"))
+            if (!Directory.Exists("apk")) Directory.CreateDirectory("apk");
+
+            var fn = (from f in Directory.EnumerateFiles("apk") where System.IO.Path.GetExtension(f).Equals(".apk", StringComparison.OrdinalIgnoreCase) select f).FirstOrDefault();
+
+            if (string.IsNullOrEmpty(fn))
             {
-                MessageBox.Show("You must extract the configuration file from the GM Android App's .apk and copy it to the config folder first.", "Missing configuration");
-                //todo: this doesn't work
-                App.Current.Shutdown();
+                MessageBox.Show("You must copy the Android app's .apk file to the apk folder first.", "Missing apk");
+                Environment.Exit(100);
                 return;
             }
 
             try
             {
-                _globalConfig = JsonConvert.DeserializeObject<GmConfiguration>(File.ReadAllText("Config\\configuration.json", Encoding.UTF8));
+                _globalConfig = JsonConvert.DeserializeObject<GmConfiguration>(GM.SettingsReader.ReadUtility.Read(Properties.Resources.a, Properties.Resources.gm, File.OpenRead(fn)));
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error reading config file: " + ex.ToString(), "Config read error");
-                //todo: this doesn't work
-                App.Current.Shutdown();
+                Environment.Exit(100);
                 return;
             }
         }

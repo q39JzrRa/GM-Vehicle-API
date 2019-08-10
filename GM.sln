@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GM.WindowsUI", "GM.WindowsU
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8DADF6E3-2511-4EE4-849C-CC71C89CBD7E}"
 	ProjectSection(SolutionItems) = preProject
+		Assemblies\GM.SettingsReader.dll = Assemblies\GM.SettingsReader.dll
 		readme.md = readme.md
 	EndProjectSection
 EndProject

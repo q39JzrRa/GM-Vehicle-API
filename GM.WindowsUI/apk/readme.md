@@ -1,0 +1,1 @@
+﻿Place the Android app .apk file in this folder
