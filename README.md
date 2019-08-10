@@ -1,5 +1,6 @@
 # GM-Vehicle-API
-Remote API for supported General Motors vehicles
+Remote API for supported General Motors vehicles in C#, .NET Standard
+Includes a WPF demo app.
 
 This is the API used by the myChevrolet, myBuick, myGMC, myCadillac, My Vauxhall and myOpel apps.
 
@@ -25,7 +26,6 @@ VERY IMPORTANT: Unless you want an international incident on your hands DO NOT S
 This is very early, unpolished, incomplete code. No judgement please.
 
 
-TODO: use diagnostic list from config, rather than hard-coded
 
 TODO: implement lots more actions
 
