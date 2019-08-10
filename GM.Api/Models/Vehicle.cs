@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace GM.Api.Models
@@ -8,44 +10,90 @@ namespace GM.Api.Models
 
     public class VehiclesResponse
     {
-        public Vehicles vehicles { get; set; }
+        [JsonProperty("vehicles")]
+        public Vehicles Vehicles { get; set; }
     }
 
     public class Vehicles
     {
-        public string size { get; set; }
-        public Vehicle[] vehicle { get; set; }
+        [JsonProperty("size")]
+        public string Size { get; set; }
+
+        [JsonProperty("vehicle")]
+        public Vehicle[] Vehicle { get; set; }
     }
 
     public class Vehicle
     {
-        public string vin { get; set; }
-        public string make { get; set; }
-        public string model { get; set; }
-        public string year { get; set; }
-        public string manufacturer { get; set; }
-        public string bodyStyle { get; set; }
-        public string phone { get; set; }
-        public string unitType { get; set; }
-        public string onstarStatus { get; set; }
-        public string url { get; set; }
-        public string isInPreActivation { get; set; }
-        public Insuranceinfo insuranceInfo { get; set; }
-        public string enrolledInContinuousCoverage { get; set; }
-        public Commands commands { get; set; }
-        public Modules modules { get; set; }
-        public Entitlements entitlements { get; set; }
-        public string propulsionType { get; set; }
+        [JsonProperty("vin")]
+        public string Vin { get; set; }
+
+        [JsonProperty("make")]
+        public string Make { get; set; }
+
+        [JsonProperty("model")]
+        public string Model { get; set; }
+
+        [JsonProperty("year")]
+        public string Year { get; set; }
+
+        [JsonProperty("manufacturer")]
+        public string Manufacturer { get; set; }
+
+        [JsonProperty("bodyStyle")]
+        public string BodyStyle { get; set; }
+
+        [JsonProperty("phone")]
+        public string Phone { get; set; }
+
+        [JsonProperty("unitType")]
+        public string UnitType { get; set; }
+
+        [JsonProperty("onstarStatus")]
+        public string OnStarStatus { get; set; }
+
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("isInPreActivation")]
+        public bool? IsInPreActivation { get; set; }
+
+        [JsonProperty("insuranceInfo")]
+        public InsuranceInfo InsuranceInfo { get; set; }
+
+        [JsonProperty("enrolledInContinuousCoverage")]
+        public bool? EnrolledInContinuousCoverage { get; set; }
+
+        [JsonProperty("commands")]
+        public Commands Commands { get; set; }
+
+        [JsonProperty("modules")]
+        public Modules Modules { get; set; }
+
+        [JsonProperty("entitlements")]
+        public Entitlements Entitlements { get; set; }
+
+        [JsonProperty("propulsionType")]
+        public string PropulsionType { get; set; }
+
+
+        public Command GetCommand(string name)
+        {
+            return (from f in Commands.Command where f.Name.Equals(name, StringComparison.Ordinal) select f).FirstOrDefault();
+        }
+
     }
 
-    public class Insuranceinfo
+    public class InsuranceInfo
     {
-        public InsuranceAgent insuranceAgent { get; set; }
+        [JsonProperty("insuranceAgent")]
+        public InsuranceAgent InsuranceAgent { get; set; }
     }
 
     public class InsuranceAgent
     {
-        public Phone phone { get; set; }
+        [JsonProperty("phone")]
+        public Phone Phone { get; set; }
     }
 
     public class Phone
@@ -54,50 +102,74 @@ namespace GM.Api.Models
 
     public class Commands
     {
-        public Command[] command { get; set; }
+        [JsonProperty("command")]
+        public Command[] Command { get; set; }
     }
 
     public class Command
     {
-        public string name { get; set; }
-        public string description { get; set; }
-        public string url { get; set; }
-        public string isPrivSessionRequired { get; set; }
-        public CommandData commandData { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("url")]
+        public string Url { get; set; }
+
+        [JsonProperty("isPrivSessionRequired")]
+        public bool? IsPrivSessionRequired { get; set; }
+
+        [JsonProperty("commandData")]
+        public CommandData CommandData { get; set; }
     }
 
     public class CommandData
     {
-        public SupportedDiagnostics supportedDiagnostics { get; set; }
+        [JsonProperty("supportedDiagnostics")]
+        public SupportedDiagnostics SupportedDiagnostics { get; set; }
     }
 
     public class SupportedDiagnostics
     {
-        public string[] supportedDiagnostic { get; set; }
+        [JsonProperty("supportedDiagnostic")]
+        public string[] SupportedDiagnostic { get; set; }
     }
 
     public class Modules
     {
-        public Module[] module { get; set; }
+        [JsonProperty("module")]
+        public Module[] Module { get; set; }
     }
 
     public class Module
     {
-        public string moduleType { get; set; }
-        public string moduleCapability { get; set; }
+        [JsonProperty("moduleType")]
+        public string ModuleType { get; set; }
+
+        [JsonProperty("moduleCapability")]
+        public string ModuleCapability { get; set; }
     }
 
     public class Entitlements
     {
-        public Entitlement[] entitlement { get; set; }
+        [JsonProperty("entitlement")]
+        public Entitlement[] Entitlement { get; set; }
     }
 
     public class Entitlement
     {
-        public string id { get; set; }
-        public string eligible { get; set; }
-        public string ineligibleReasonCode { get; set; }
-        public string notificationCapable { get; set; }
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("eligible")]
+        public bool? Eligible { get; set; }
+
+        [JsonProperty("ineligibleReasonCode")]
+        public string IneligibleReasonCode { get; set; }
+
+        [JsonProperty("notificationCapable")]
+        public string NotificationCapable { get; set; }
     }
 
 
