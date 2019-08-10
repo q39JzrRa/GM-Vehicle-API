@@ -59,5 +59,24 @@ namespace GM.WindowsUI.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to S2myrsCTbJ+EIEvPxwhK0MdUg7BDQgVxmeeAmo/N1FAROjxKFGdeHX/e3euUTRWHYE+H5GC/QZ6B+Jx/UtExhvXPqV1erPLooUxfZ8F8NjCweMrYU9GHWednygG6SMt/l6OwN6+Dz3Llb9DYmPGl0M4ZDOGptLhHGdB633HXssCpU3vLxpK8WWYPwy1Z8m007cNUxxxKUSWDUnh9j29IMmGUDOziDM/A+4NT+7WTtc4GqKURuBJ9b6F4OsMbdKJXU58BLIfqAEZdLMCQAMCIHisvLu3y8qLUrsgoN5S0dUfvpeT1Diy448+3LbRFb8np6iuA4SP8Y/Xh1B/KZGJi3d+DLeZoC+S6CaQSA+bcTmlOSxr6+kwshRNgZl8Jb5bxTsrCb2Iq9OA+74Ofw64vFZgqZZWpkK4jf2eqRGyOayFENEf2hkGOmOJHgKWav/wGEkEoQZu4Cfe3cY+QPlmjglRaRBgjbDJiO8fTm4nACcdOXIP1K+ozK7lfjY/Xn69e [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string a {
+            get {
+                return ResourceManager.GetString("a", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] gm {
+            get {
+                object obj = ResourceManager.GetObject("gm", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
