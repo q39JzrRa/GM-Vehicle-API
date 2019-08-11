@@ -2,27 +2,45 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace GM.Api.Models
 {
+    /// <summary>
+    /// Response Body
+    /// Note: this only contains a diagnostic response. there are likely others.
+    /// </summary>
     public class ResponseBody
     {
-        public Diagnosticresponse[] diagnosticResponse { get; set; }
+        [JsonProperty("diagnosticResponse")]
+        public DiagnosticResponse[] DiagnosticResponse { get; set; }
     }
 
-    public class Diagnosticresponse
+    public class DiagnosticResponse
     {
-        public string name { get; set; }
-        public Diagnosticelement[] diagnosticElement { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("diagnosticElement")]
+        public DiagnosticElement[] DiagnosticElement { get; set; }
     }
 
-    public class Diagnosticelement
+    public class DiagnosticElement
     {
-        public string name { get; set; }
-        public string status { get; set; }
-        public string message { get; set; }
-        public string value { get; set; }
-        public string unit { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("value")]
+        public string Value { get; set; }
+
+        [JsonProperty("unit")]
+        public string Unit { get; set; }
     }
 
 }

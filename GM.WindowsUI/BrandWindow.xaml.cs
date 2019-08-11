@@ -33,7 +33,7 @@ namespace GM.WindowsUI
             _config = configuration;
             InitializeComponent();
 
-            foreach (var brandName in _config.brand_client_info.Keys.OrderBy((val) => val, StringComparer.OrdinalIgnoreCase))
+            foreach (var brandName in _config.BrandClientInfo.Keys.OrderBy((val) => val, StringComparer.OrdinalIgnoreCase))
             {
                 lstBrands.Items.Add(brandName.Substring(0, 1).ToUpperInvariant() + brandName.Substring(1));
             }

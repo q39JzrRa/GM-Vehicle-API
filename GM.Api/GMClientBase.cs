@@ -191,7 +191,7 @@ namespace GM.Api
         /// </summary>
         /// <param name="vin"></param>
         /// <returns></returns>
-        async Task<Commandresponse> VehicleConnect()
+        async Task<CommandResponse> VehicleConnect()
         {
             if (ActiveVehicle == null) throw new InvalidOperationException("ActiveVehicle must be populated");
             using (var response = await PostAsync(ActiveVehicle.GetCommand("connect").Url, new StringContent("{}", Encoding.UTF8, "application/json")))
@@ -199,9 +199,9 @@ namespace GM.Api
                 if (response.IsSuccessStatusCode)
                 {
                     var respString = await response.Content.ReadAsStringAsync();
-                    var respObj = JsonConvert.DeserializeObject<CommandResponseRoot>(respString);
-                    if (respObj == null || respObj.commandResponse == null) return null;
-                    return respObj.commandResponse;
+                    var respObj = JsonConvert.DeserializeObject<CommandRequestResponse>(respString);
+                    if (respObj == null || respObj.CommandResponse == null) return null;
+                    return respObj.CommandResponse;
                 }
                 else
                 {
@@ -384,7 +384,7 @@ namespace GM.Api
         /// <param name="pin">OnStar PIN</param>
         /// <param name="command">command name</param>
         /// <returns></returns>
-        async Task<Commandresponse> InitiateCommand(string command, JObject requestParameters)
+        async Task<CommandResponse> InitiateCommand(string command, JObject requestParameters)
         {
             if (ActiveVehicle == null) throw new InvalidOperationException("ActiveVehicle must be populated");
 
@@ -427,9 +427,9 @@ namespace GM.Api
                     return null;
                 }
 
-                var commandResult = await response.Content.ReadAsAsync<CommandResponseRoot>();
+                var commandResult = await response.Content.ReadAsAsync<CommandRequestResponse>();
 
-                return commandResult.commandResponse;
+                return commandResult.CommandResponse;
             }
         }
 
@@ -439,7 +439,7 @@ namespace GM.Api
         /// </summary>
         /// <param name="statusUrl">statusUrl returned when the command was initiated</param>
         /// <returns>Response from final poll</returns>
-        async Task<Commandresponse> WaitForCommandCompletion(string statusUrl)
+        async Task<CommandResponse> WaitForCommandCompletion(string statusUrl)
         {
             int nullResponseCount = 0;
 
@@ -452,16 +452,16 @@ namespace GM.Api
                     nullResponseCount++;
                     if (nullResponseCount > 5) return null;
                 }
-                if ("inProgress".Equals(result.status, StringComparison.OrdinalIgnoreCase)) continue;
+                if ("inProgress".Equals(result.Status, StringComparison.OrdinalIgnoreCase)) continue;
                 return result;
             }
         }
 
 
-        protected async Task<Commandresponse> InitiateCommandAndWait(string command, JObject requestParameters)
+        protected async Task<CommandResponse> InitiateCommandAndWait(string command, JObject requestParameters)
         {
             var result = await InitiateCommand(command, requestParameters);
-            var endStatus = await WaitForCommandCompletion(result.url);
+            var endStatus = await WaitForCommandCompletion(result.Url);
             return endStatus;
         }
 
@@ -469,7 +469,7 @@ namespace GM.Api
         {
             var result = await InitiateCommandAndWait(command, requestParameters);
             if (result == null) return false;
-            if ("success".Equals(result.status, StringComparison.OrdinalIgnoreCase))
+            if ("success".Equals(result.Status, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
@@ -480,14 +480,14 @@ namespace GM.Api
         }
 
 
-        async Task<Commandresponse> PollCommandStatus(string statusUrl)
+        async Task<CommandResponse> PollCommandStatus(string statusUrl)
         {
             var response = await GetAsync($"{statusUrl}?units=METRIC");
 
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<CommandResponseRoot>();
-                return result.commandResponse;
+                var result = await response.Content.ReadAsAsync<CommandRequestResponse>();
+                return result.CommandResponse;
             }
             else
             {

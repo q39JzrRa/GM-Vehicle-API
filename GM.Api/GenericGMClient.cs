@@ -17,7 +17,7 @@ namespace GM.Api
         }
 
 
-        public async Task<Diagnosticresponse[]> GetDiagnostics()
+        public async Task<DiagnosticResponse[]> GetDiagnostics()
         {
             var cmdInfo = ActiveVehicle.GetCommand("diagnostics");
 
@@ -28,9 +28,9 @@ namespace GM.Api
 
             var result = await InitiateCommandAndWait("diagnostics", reqObj);
             if (result == null) return null;
-            if ("success".Equals(result.status, StringComparison.OrdinalIgnoreCase))
+            if ("success".Equals(result.Status, StringComparison.OrdinalIgnoreCase))
             {
-                return result.body.diagnosticResponse;
+                return result.Body.DiagnosticResponse;
             }
             else
             {
@@ -40,7 +40,7 @@ namespace GM.Api
 
 
 
-        public async Task<Commandresponse> IssueCommand(string commandName, JObject parameters = null)
+        public async Task<CommandResponse> IssueCommand(string commandName, JObject parameters = null)
         {
             return await InitiateCommandAndWait(commandName, parameters);
         }

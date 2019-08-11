@@ -60,7 +60,7 @@ namespace GM.WindowsUI
             }
 
             //todo: maybe the client reads the config and takes the brand and device id as param?
-            _client = new GenericGMClient(_clientCredentials.client_id, Properties.Settings.Default.DeviceId, _clientCredentials.client_secret, _apiConfig.url);
+            _client = new GenericGMClient(_clientCredentials.ClientId, Properties.Settings.Default.DeviceId, _clientCredentials.ClientSecret, _apiConfig.Url);
             _client.TokenUpdateCallback = TokenUpdateHandler;
 
             if (!string.IsNullOrEmpty(Properties.Settings.Default.LoginData))
@@ -119,8 +119,8 @@ namespace GM.WindowsUI
 
             Title = _brandDisplay + " Vehicle Control";
 
-            _clientCredentials = _globalConfig.brand_client_info[_brand];
-            _apiConfig = (from f in _globalConfig.configs where f.name.Equals(_brand, StringComparison.OrdinalIgnoreCase) select f).FirstOrDefault();
+            _clientCredentials = _globalConfig.BrandClientInfo[_brand];
+            _apiConfig = (from f in _globalConfig.Configs where f.Name.Equals(_brand, StringComparison.OrdinalIgnoreCase) select f).FirstOrDefault();
         }
 
         void LoadConfiguration()
@@ -393,7 +393,7 @@ namespace GM.WindowsUI
             lblStatus.Content = "Getting Diagnostics (Please Wait)...";
             var details = await _client.GetDiagnostics();
             txtOutput.Text = JsonConvert.SerializeObject(details, Formatting.Indented);
-
+            lblStatus.Content = "Getting Diagnostics Complete";
             grpActions.IsEnabled = true;
             btnLogin.IsEnabled = true;
         }
