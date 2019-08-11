@@ -29,10 +29,12 @@ This is very early, unpolished, incomplete code. No judgement please.
 
 TODO: implement lots more actions
 
-TODO: determine how app elevates creds when using fingerprint - does the app save the pin?
+TODO: Complete updating JSON model property names
 
-TODO: there is a means of refreshing a token using a pin...
+Note: the android app saves the onstar pin using biometrics to unlock - no difference in the api calls
+Note: the android app does not use a different token refresh mechanism after elevating permissions, but the elevation persists across a refresh. The upgrade request does not specify an expiration. Testing will be required to determine the lifespan of token upgrades.
 
-TODO: determine how long elevation lasts, keep track and re-elevate when required
+TODO: Implement secure means of saving onstar pin. If possible.
+TODO: recognize response from calling priv'd command without upgrade and trigger upgrade using saved pin.
 
 TODO: consider using MS JWT implementation
