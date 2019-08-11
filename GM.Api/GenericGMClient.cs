@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace GM.Api
 {
     /// <summary>
-    /// Generic implementation of GM Client supporting a limited set of commands or manually defined commands
+    /// Generic implementation of GM Client supporting a limited set of commands
     /// </summary>
     public class GenericGMClient : GMClientBase
     {
@@ -16,7 +16,10 @@ namespace GM.Api
         {
         }
 
-
+        /// <summary>
+        /// Retrieve Diagnostic data for the active vehicle
+        /// </summary>
+        /// <returns></returns>
         public async Task<DiagnosticResponse[]> GetDiagnostics()
         {
             var cmdInfo = ActiveVehicle.GetCommand("diagnostics");
@@ -39,14 +42,23 @@ namespace GM.Api
         }
 
 
-
+        /// <summary>
+        /// Issue an arbitrary command
+        /// </summary>
+        /// <param name="commandName">Name of the command. Must exists in the vehicle's configuration</param>
+        /// <param name="parameters">JSON parameters for the command</param>
+        /// <returns></returns>
         public async Task<CommandResponse> IssueCommand(string commandName, JObject parameters = null)
         {
             return await InitiateCommandAndWait(commandName, parameters);
         }
 
-
-        public async Task<bool> LockDoor(string pin)
+        /// <summary>
+        /// Lock the active vehicles's doors and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> LockDoor()
         {
             var reqObj = new JObject()
             {
@@ -57,7 +69,12 @@ namespace GM.Api
             return await InitiateCommandAndWaitForSuccess("lockDoor", reqObj);
         }
 
-        public async Task<bool> UnlockDoor(string pin)
+        /// <summary>
+        /// Unlock the active vehicles's doors and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> UnlockDoor()
         {
 
             var reqObj = new JObject()
@@ -68,18 +85,33 @@ namespace GM.Api
             return await InitiateCommandAndWaitForSuccess("unlockDoor", reqObj);
         }
 
-        public async Task<bool> Start(string pin)
+        /// <summary>
+        /// Remote start the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> Start()
         {
             return await InitiateCommandAndWaitForSuccess("start", null);
         }
 
-        public async Task<bool> CancelStart(string pin)
+        /// <summary>
+        /// Remote stop the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> CancelStart()
         {
             return await InitiateCommandAndWaitForSuccess("cancelStart", null);
         }
 
 
-        public async Task<bool> Alert(string pin)
+        /// <summary>
+        /// Set off remote alarm on the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> Alert()
         {
             var reqObj = new JObject()
             {
@@ -93,8 +125,12 @@ namespace GM.Api
             return await InitiateCommandAndWaitForSuccess("alert", reqObj);
         }
 
-
-        public async Task<bool> CancelAlert(string pin)
+        /// <summary>
+        /// Stop remote alarm on the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> CancelAlert()
         {
             return await InitiateCommandAndWaitForSuccess("cancelAlert", null);
         }

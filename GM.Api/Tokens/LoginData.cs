@@ -10,24 +10,46 @@ namespace GM.Api.Tokens
     /// </summary>
     public class LoginData
     {
+        /// <summary>
+        /// Access token used as bearer token
+        /// </summary>
         [JsonProperty("access_token")]
         public string AccessToken { get; set; }
 
+        /// <summary>
+        /// Bearer
+        /// </summary>
         [JsonProperty("token_type")]
         public string TokenType { get; set; }
 
+        /// <summary>
+        /// Token expiration in seconds
+        /// (Note: I have seen the tokens expire quicker)
+        /// </summary>
         [JsonProperty("expires_in")]
         public int ExpiresIn { get; set; }
 
+        /// <summary>
+        /// List of scopes
+        /// </summary>
         [JsonProperty("scope")]
         public string Scope { get; set; }
 
+        /// <summary>
+        /// Information about the OnStar account
+        /// </summary>
         [JsonProperty("onstar_account_info")]
         public Onstar_Account_Info OnStarAccountInfo { get; set; }
 
+        /// <summary>
+        /// Information about the user
+        /// </summary>
         [JsonProperty("user_info")]
         public User_Info UserInfo { get; set; }
 
+        /// <summary>
+        /// RSA hashed itentity token (JWT) used in refresh assertion
+        /// </summary>
         [JsonProperty("id_token")]
         public string IdToken { get; set; }
 

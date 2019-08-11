@@ -30,7 +30,12 @@ namespace GM.Api
 
         HttpClient _client;
 
+        /// <summary>
+        /// If the current login token has been upgraded
+        /// Note: it is not known how long this lasts
+        /// </summary>
         public bool IsUpgraded { get; private set; } = false;
+
         bool _isConnected = false;
 
         /// <summary>
@@ -457,7 +462,12 @@ namespace GM.Api
             }
         }
 
-
+        /// <summary>
+        /// Initiate a command and wait for completion, returning the Command Response
+        /// </summary>
+        /// <param name="command">Command Name</param>
+        /// <param name="requestParameters">Command request parameters</param>
+        /// <returns>Command Response</returns>
         protected async Task<CommandResponse> InitiateCommandAndWait(string command, JObject requestParameters)
         {
             var result = await InitiateCommand(command, requestParameters);
@@ -465,6 +475,13 @@ namespace GM.Api
             return endStatus;
         }
 
+
+        /// <summary>
+        /// Initiate a command and wait for completion, parsing the response for success flag
+        /// </summary>
+        /// <param name="command">Command Name</param>
+        /// <param name="requestParameters">Command request parameters</param>
+        /// <returns>True or false if the command succeeded</returns>
         protected async Task<bool> InitiateCommandAndWaitForSuccess(string command, JObject requestParameters)
         {
             var result = await InitiateCommandAndWait(command, requestParameters);
@@ -479,7 +496,11 @@ namespace GM.Api
             }
         }
 
-
+        /// <summary>
+        /// Call the status URL for a command
+        /// </summary>
+        /// <param name="statusUrl"></param>
+        /// <returns></returns>
         async Task<CommandResponse> PollCommandStatus(string statusUrl)
         {
             var response = await GetAsync($"{statusUrl}?units=METRIC");
@@ -496,6 +517,11 @@ namespace GM.Api
         }
 
 
+        /// <summary>
+        /// Get the list of vehicle configurations for the first 10 vehicles on the account
+        /// Result of this request is required to use vehicle-specific commands
+        /// </summary>
+        /// <returns>Collection of Vehicle configurations</returns>
         public async Task<IEnumerable<Vehicle>> GetVehicles()
         {
             //these could be parameterized, but we better stick with what the app does
