@@ -60,14 +60,48 @@ namespace GM.Api
         /// <returns>True or false for success</returns>
         public async Task<bool> LockDoor()
         {
+
             var reqObj = new JObject()
             {
-                ["delay"] = 0
+                ["lockDoorRequest"] = new JObject()
+                {
+                    ["delay"] = 0
+                }
             };
-
 
             return await InitiateCommandAndWaitForSuccess("lockDoor", reqObj);
         }
+
+
+        /// <summary>
+        /// Fails when the hotspot is off...
+        /// Note: the app uses diagnotics that also fail when the hotpot is off
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HotspotInfo> GetHotspotInfo()
+        {
+            var resp = await InitiateCommandAndWait("getHotspotInfo", null);
+            return resp.Body.HotspotInfo;
+        }
+
+
+        /// <summary>
+        /// Send a turn-by-turn destination to the vehicle
+        /// Requires both coordinates and address info
+        /// Vehicle may not respond if turned off or may take a very long time to respond
+        /// </summary>
+        /// <param name="destination"></param>
+        /// <returns></returns>
+        public async Task<bool> SendTBTRoute(TbtDestination destination)
+        {
+            var reqObj = new JObject()
+            {
+                ["tbtDestination"] = new JObject(destination)
+            };
+
+            return await InitiateCommandAndWaitForSuccess("sendTBTRoute", reqObj);
+        }
+
 
         /// <summary>
         /// Unlock the active vehicles's doors and wait for completion
@@ -76,10 +110,12 @@ namespace GM.Api
         /// <returns>True or false for success</returns>
         public async Task<bool> UnlockDoor()
         {
-
             var reqObj = new JObject()
             {
-                ["delay"] = 0
+                ["unlockDoorRequest"] = new JObject()
+                {
+                    ["delay"] = 0
+                }
             };
 
             return await InitiateCommandAndWaitForSuccess("unlockDoor", reqObj);
@@ -113,14 +149,18 @@ namespace GM.Api
         /// <returns>True or false for success</returns>
         public async Task<bool> Alert()
         {
+
+
             var reqObj = new JObject()
             {
-                ["action"] = new JArray() { "Honk", "Flash" },
-                ["delay"] = 0,
-                ["duration"] = 1,
-                ["override"] = new JArray() { "DoorOpen", "IgnitionOn" }
+                ["alertRequest"] = new JObject()
+                {
+                    ["action"] = new JArray() { "Honk", "Flash" },
+                    ["delay"] = 0,
+                    ["duration"] = 1,
+                    ["override"] = new JArray() { "DoorOpen", "IgnitionOn" }
+                }
             };
-
 
             return await InitiateCommandAndWaitForSuccess("alert", reqObj);
         }

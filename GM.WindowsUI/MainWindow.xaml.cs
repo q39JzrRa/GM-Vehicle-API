@@ -246,7 +246,7 @@ namespace GM.WindowsUI
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Locking (Please wait)";
-            var success = await _client.LockDoor(txtPin.Password);
+            var success = await _client.LockDoor();
             if (success)
             {
                 lblStatus.Content = "Locked Successfully";
@@ -266,7 +266,7 @@ namespace GM.WindowsUI
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Unlocking (Please wait)";
-            var success = await _client.UnlockDoor(txtPin.Password);
+            var success = await _client.UnlockDoor();
             if (success)
             {
                 lblStatus.Content = "Unlocked Successfully";
@@ -285,7 +285,7 @@ namespace GM.WindowsUI
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Starting (Please wait)";
-            var success = await _client.Start(txtPin.Password);
+            var success = await _client.Start();
             if (success)
             {
                 lblStatus.Content = "Started Successfully";
@@ -304,7 +304,7 @@ namespace GM.WindowsUI
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Stopping (Please wait)";
-            var success = await _client.CancelStart(txtPin.Password);
+            var success = await _client.CancelStart();
             if (success)
             {
                 lblStatus.Content = "Stopped Successfully";
@@ -323,7 +323,7 @@ namespace GM.WindowsUI
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Alarming (Please wait)";
-            var success = await _client.Alert(txtPin.Password);
+            var success = await _client.Alert();
             if (success)
             {
                 lblStatus.Content = "Alarmed Successfully";
@@ -342,7 +342,7 @@ namespace GM.WindowsUI
             grpActions.IsEnabled = false;
             btnLogin.IsEnabled = false;
             lblStatus.Content = "Stopping Alarm (Please wait)";
-            var success = await _client.CancelAlert(txtPin.Password);
+            var success = await _client.CancelAlert();
             if (success)
             {
                 lblStatus.Content = "Alarmed Stopped Successfully";

@@ -54,10 +54,38 @@ namespace GM.Api.Models
         public string Type { get; set; }
 
         /// <summary>
-        /// Response boldy for commands that include a response (e.g. diagnostics, location)
+        /// Response body for commands that include a response (e.g. diagnostics, location)
         /// </summary>
         [JsonProperty("body")]
         public ResponseBody Body { get; set; }
+
+    }
+
+
+
+    /// <summary>
+    /// Response Body
+    /// Note: this only contains a diagnostic response. there are likely others.
+    /// </summary>
+    public class ResponseBody
+    {
+        /// <summary>
+        /// Populated for diagnostics command
+        /// </summary>
+        [JsonProperty("diagnosticResponse")]
+        public DiagnosticResponse[] DiagnosticResponse { get; set; }
+
+        /// <summary>
+        /// populated for location command
+        /// </summary>
+        [JsonProperty("location")]
+        public Location Location { get; set; }
+
+        /// <summary>
+        /// placeholder - not yet tested
+        /// </summary>
+        [JsonProperty("hotspotInfo")]
+        public HotspotInfo HotspotInfo { get; set; }
 
     }
 

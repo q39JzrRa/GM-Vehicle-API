@@ -414,11 +414,11 @@ namespace GM.Api
             }
 
 
-            JObject reqObj = new JObject();
+            JObject reqObj = requestParameters;
 
-            if (requestParameters != null)
+            if (reqObj == null)
             {
-                reqObj[$"{command}Request"] = requestParameters;
+                reqObj = new JObject();
             }
 
 

@@ -6,16 +6,6 @@ using Newtonsoft.Json;
 
 namespace GM.Api.Models
 {
-    /// <summary>
-    /// Response Body
-    /// Note: this only contains a diagnostic response. there are likely others.
-    /// </summary>
-    public class ResponseBody
-    {
-        [JsonProperty("diagnosticResponse")]
-        public DiagnosticResponse[] DiagnosticResponse { get; set; }
-    }
-
     public class DiagnosticResponse
     {
         [JsonProperty("name")]
