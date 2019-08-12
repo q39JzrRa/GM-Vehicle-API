@@ -22,6 +22,35 @@ IMPORTANT: The demo app requires a copy of the Android app's .apk file to be cop
 VERY IMPORTANT: Unless you want an international incident on your hands DO NOT SHARE ANY OF THE CONTENTS OF THE SETTINGS FILE ANYWHERE _EVER_!!!!
 
 
+# Quick Start
+If you prefer not to use the Windows UI or examine how it works, here is how you might start your car if you only have one.
+
+```
+            // Obtain Client ID, generate Device ID (GUID formatted as a string), Obtain Client Secret
+
+            var client = new GenericGMClient("{client id}", "{deviceId}", "{client secret}", "https:\\api.gm.com\api");
+            if (!await _client.Login("{ your username}", "{your password}")) { throw new InvalidOperationException("Login Failed"); }
+            var vehicles = await _client.GetVehicles();
+            if (vehicles == null || !vehicles.Any()) { throw new InvalidOperationException("No Vehicles on acccount"); }
+            client.ActiveVehicle = vehicles.FirstOrDefault();
+            if (!await client.UpgradeLogin("{Your OnStar PIN")) { throw new InvalidOperationException("Login upgrade failed"); }
+            if (!await client.Start()) { throw new InvalidOperationException("Start failed"); }
+            Console.WriteLine("Start Success");
+```
+
+
+# Implemented Functionality
+* Login
+* Elevate credentials
+* Enummerate Vehicles and vehicle capabilities
+* Remote Lock and Unlock
+* Remote Start and Stop
+* Remote Alarm
+* Get Diagnostics (including charge status and charge level)
+* Get vehicle location
+* Send turn-by-turn route
+
+
 # TODO
 This is very early, unpolished, incomplete code. No judgement please.
 
