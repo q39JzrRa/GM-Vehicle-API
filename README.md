@@ -26,7 +26,6 @@ VERY IMPORTANT: Unless you want an international incident on your hands DO NOT S
 This is very early, unpolished, incomplete code. No judgement please.
 
 * Implement more commands
-* Analyze and implement vehicle location capability
 * consider using MS JWT implementation
 * Implement secure means of saving onstar pin. If possible.
 * recognize response from calling priv'd command without upgrade and trigger upgrade using saved pin.
