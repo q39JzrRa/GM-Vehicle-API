@@ -33,7 +33,7 @@ If you prefer not to use the Windows UI or examine how it works, here is how you
             var vehicles = await _client.GetVehicles();
             if (vehicles == null || !vehicles.Any()) { throw new InvalidOperationException("No Vehicles on acccount"); }
             client.ActiveVehicle = vehicles.FirstOrDefault();
-            if (!await client.UpgradeLogin("{Your OnStar PIN")) { throw new InvalidOperationException("Login upgrade failed"); }
+            if (!await client.UpgradeLogin("{Your OnStar PIN}")) { throw new InvalidOperationException("Login upgrade failed"); }
             if (!await client.Start()) { throw new InvalidOperationException("Start failed"); }
             Console.WriteLine("Start Success");
 ```
@@ -42,7 +42,7 @@ If you prefer not to use the Windows UI or examine how it works, here is how you
 # Implemented Functionality
 * Login
 * Elevate credentials
-* Enummerate Vehicles and vehicle capabilities
+* Enumerate Vehicles and vehicle capabilities
 * Remote Lock and Unlock
 * Remote Start and Stop
 * Remote Alarm
