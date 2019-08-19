@@ -21,6 +21,8 @@ I have implemented a very small, very simple web service hosted with heroku (htt
 and I have implemented a version of the client that uses this service.
 (Please note that you will be sending your login credentials to this service. I would highly advise reviewing the service source code here: https://github.com/q39JzrRa/GM-Vehicle-API-AuthUtil . It is deployed to Heroku using CD from the master branch so the code you see is the code that runs)
 
+Quick note: I have purged the extraction code from the repo. Sorry about that :-P
+
 
 # Quick Start
 If you prefer not to use the Windows UI or examine how it works, here is how you might start your car if you only have one.
