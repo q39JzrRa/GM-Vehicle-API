@@ -82,5 +82,14 @@ namespace GM.WindowsUI.Properties {
                 this["Vin"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://gmsigner.herokuapp.com/")]
+        public string TokenSignerUrl {
+            get {
+                return ((string)(this["TokenSignerUrl"]));
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace GM.Api.Tokens
 {
-    class JwtTool
+    public class JwtTool
     {
         public IJwtEncoder Encoder { get; private set; }
 
@@ -28,6 +28,7 @@ namespace GM.Api.Tokens
             IDateTimeProvider dateTimeProvider = new UtcDateTimeProvider();
             IJwtValidator validator = new JwtValidator(serializer, dateTimeProvider);
             Decoder = new JwtDecoder(serializer, validator, urlEncoder);
+            
         }
 
 

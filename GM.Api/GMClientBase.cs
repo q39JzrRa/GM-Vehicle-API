@@ -21,12 +21,9 @@ namespace GM.Api
         public static int RetryCount { get; set; } = 3;
 
         //TODO: consistent exception throwing
-
-        string _clientId;
-        string _deviceId;
-        JwtTool _jwtTool;
-        string _apiUrl;
-        string _host;
+        protected Brand _brand;
+        protected string _deviceId;
+        protected string _apiUrl;
 
         HttpClient _client;
 
@@ -62,24 +59,20 @@ namespace GM.Api
         /// <summary>
         /// Create a new GMClient
         /// </summary>
-        /// <param name="clientId">Client ID for authentication</param>
         /// <param name="deviceId">Device ID (should be in the format of a GUID)</param>
-        /// <param name="clientSecret">Client Secret for authentication</param>
-        /// <param name="apiUrl">Base url for the API. Usually https://api.gm.com/api </param>
-        public GMClientBase(string clientId, string deviceId, string clientSecret, string apiUrl)
+        /// <param name="brand">One of the supported brands from </param>
+        public GMClientBase(string deviceId, Brand brand)
         {
-            Setup(clientId, deviceId, clientSecret, apiUrl);
+            Setup(deviceId, brand);
         }
 
-        void Setup(string clientId, string deviceId, string clientSecret, string apiUrl)
+        void Setup(string deviceId, Brand brand)
         {
-            _clientId = clientId;
+            _brand = brand;
             _deviceId = deviceId;
-            _jwtTool = new JwtTool(clientSecret);
-            _apiUrl = apiUrl;
+            _apiUrl = brand.GetUrl();
             var uri = new Uri(_apiUrl);
-            _host = uri.Host;
-            _client = CreateClient(_host);
+            _client = CreateClient(uri.Host);
         }
 
 
@@ -95,6 +88,19 @@ namespace GM.Api
             client.DefaultRequestHeaders.MaxForwards = 10;
             client.DefaultRequestHeaders.ExpectContinue = false;
             return client;
+        }
+
+
+        protected abstract Task<string> EncodeLoginRequest(LoginRequest request);
+
+        LoginData DecodeLoginData(string token)
+        {
+            IJsonSerializer serializer = new SortedJsonSerializer();
+            IBase64UrlEncoder urlEncoder = new JwtBase64UrlEncoder();
+            IDateTimeProvider dateTimeProvider = new UtcDateTimeProvider();
+            IJwtValidator validator = new JwtValidator(serializer, dateTimeProvider);
+            var decoder = new JwtDecoder(serializer, validator, urlEncoder);
+            return decoder.DecodeToObject<LoginData>(token);
         }
 
 
@@ -157,6 +163,9 @@ namespace GM.Api
                     }
                     else if (resp.StatusCode == System.Net.HttpStatusCode.BadGateway || resp.StatusCode == System.Net.HttpStatusCode.Conflict || resp.StatusCode == System.Net.HttpStatusCode.GatewayTimeout || resp.StatusCode == System.Net.HttpStatusCode.InternalServerError || resp.StatusCode == System.Net.HttpStatusCode.RequestTimeout || resp.StatusCode == System.Net.HttpStatusCode.ResetContent || resp.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
                     {
+
+                        var respMessage = (await resp.Content.ReadAsStringAsync()) ?? "";
+                        int f = 5;
                         //possible transient errors
                         //todo: log this
                         await Task.Delay(500);
@@ -226,7 +235,7 @@ namespace GM.Api
         {
             var payload = new LoginRequest()
             {
-                ClientId = _clientId,
+                //ClientId = _clientId,
                 DeviceId = _deviceId,
                 Credential = onStarPin,
                 CredentialType = "PIN",
@@ -234,7 +243,8 @@ namespace GM.Api
                 Timestamp = DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK")
             };
 
-            var token = _jwtTool.EncodeToken(payload);
+            //var token = _jwtTool.EncodeToken(payload);
+            var token = await EncodeLoginRequest(payload);
 
             using (var response = await PostAsync($"{_apiUrl}/v1/oauth/token/upgrade", new StringContent(token, Encoding.UTF8, "text/plain")))
             {
@@ -264,7 +274,7 @@ namespace GM.Api
         {
             var payload = new LoginRequest()
             {
-                ClientId = _clientId,
+                //ClientId = _clientId,
                 DeviceId = _deviceId,
                 GrantType = "password",
                 Nonce = helpers.GenerateNonce(),
@@ -274,7 +284,8 @@ namespace GM.Api
                 Username = username
             };
 
-            var token = _jwtTool.EncodeToken(payload);
+            //var token = _jwtTool.EncodeToken(payload);
+            var token = await EncodeLoginRequest(payload);
 
             using (var response = await PostAsync($"{_apiUrl}/v1/oauth/token", new StringContent(token, Encoding.UTF8, "text/plain"), true))
             {
@@ -294,7 +305,8 @@ namespace GM.Api
                     return false;
                 }
 
-                var loginTokenData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
+                //var loginTokenData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
+                var loginTokenData = DecodeLoginData(rawResponseToken);
 
                 LoginData = loginTokenData;
                 _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", LoginData.AccessToken);
@@ -315,7 +327,6 @@ namespace GM.Api
 
             var payload = new LoginRequest()
             {
-                ClientId = _clientId,
                 DeviceId = _deviceId,
                 GrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer",
                 Nonce = helpers.GenerateNonce(),
@@ -324,7 +335,7 @@ namespace GM.Api
                 Assertion = LoginData.IdToken
             };
 
-            var token = _jwtTool.EncodeToken(payload);
+            var token = await EncodeLoginRequest(payload);
 
             using (var response = await PostAsync($"{_apiUrl}/v1/oauth/token", new StringContent(token, Encoding.UTF8, "text/plain"), true))
             {
@@ -358,7 +369,7 @@ namespace GM.Api
     }*/
                 // Not sure if the scope needs to be updated, as msso has been removed in the refresh request
 
-                var refreshData = _jwtTool.DecodeTokenToObject<LoginData>(rawResponseToken);
+                var refreshData = DecodeLoginData(rawResponseToken);
 
                 LoginData.AccessToken = refreshData.AccessToken;
                 LoginData.IssuedAtUtc = refreshData.IssuedAtUtc;
@@ -544,5 +555,173 @@ namespace GM.Api
 
 
         #endregion
+
+
+        #region Command Implementations
+
+        /// <summary>
+        /// Retrieve Diagnostic data for the active vehicle
+        /// </summary>
+        /// <returns></returns>
+        public async Task<DiagnosticResponse[]> GetDiagnostics()
+        {
+            var cmdInfo = ActiveVehicle.GetCommand("diagnostics");
+
+            var reqObj = new JObject()
+            {
+                ["diagnosticsRequest"] = new JObject()
+                {
+                    ["diagnosticItem"] = new JArray(cmdInfo.CommandData.SupportedDiagnostics.SupportedDiagnostic)
+                }
+            };
+
+            var result = await InitiateCommandAndWait("diagnostics", reqObj);
+            if (result == null) return null;
+            if ("success".Equals(result.Status, StringComparison.OrdinalIgnoreCase))
+            {
+                return result.Body.DiagnosticResponse;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// Issue an arbitrary command
+        /// </summary>
+        /// <param name="commandName">Name of the command. Must exists in the vehicle's configuration</param>
+        /// <param name="parameters">JSON parameters for the command</param>
+        /// <returns></returns>
+        public async Task<CommandResponse> IssueCommand(string commandName, JObject parameters = null)
+        {
+            return await InitiateCommandAndWait(commandName, parameters);
+        }
+
+        /// <summary>
+        /// Lock the active vehicles's doors and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> LockDoor()
+        {
+
+            var reqObj = new JObject()
+            {
+                ["lockDoorRequest"] = new JObject()
+                {
+                    ["delay"] = 0
+                }
+            };
+
+            return await InitiateCommandAndWaitForSuccess("lockDoor", reqObj);
+        }
+
+
+        /// <summary>
+        /// Fails when the hotspot is off...
+        /// Note: the app uses diagnotics that also fail when the hotpot is off
+        /// </summary>
+        /// <returns></returns>
+        public async Task<HotspotInfo> GetHotspotInfo()
+        {
+            var resp = await InitiateCommandAndWait("getHotspotInfo", null);
+            return resp.Body.HotspotInfo;
+        }
+
+
+        /// <summary>
+        /// Send a turn-by-turn destination to the vehicle
+        /// Requires both coordinates and address info
+        /// Vehicle may not respond if turned off or may take a very long time to respond
+        /// </summary>
+        /// <param name="destination"></param>
+        /// <returns></returns>
+        public async Task<bool> SendTBTRoute(TbtDestination destination)
+        {
+            var reqObj = new JObject()
+            {
+                ["tbtDestination"] = new JObject(destination)
+            };
+
+            return await InitiateCommandAndWaitForSuccess("sendTBTRoute", reqObj);
+        }
+
+
+        /// <summary>
+        /// Unlock the active vehicles's doors and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> UnlockDoor()
+        {
+            var reqObj = new JObject()
+            {
+                ["unlockDoorRequest"] = new JObject()
+                {
+                    ["delay"] = 0
+                }
+            };
+
+            return await InitiateCommandAndWaitForSuccess("unlockDoor", reqObj);
+        }
+
+        /// <summary>
+        /// Remote start the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> Start()
+        {
+            return await InitiateCommandAndWaitForSuccess("start", null);
+        }
+
+        /// <summary>
+        /// Remote stop the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> CancelStart()
+        {
+            return await InitiateCommandAndWaitForSuccess("cancelStart", null);
+        }
+
+
+        /// <summary>
+        /// Set off remote alarm on the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> Alert()
+        {
+            var reqObj = new JObject()
+            {
+                ["alertRequest"] = new JObject()
+                {
+                    ["action"] = new JArray() { "Honk", "Flash" },
+                    ["delay"] = 0,
+                    ["duration"] = 1,
+                    ["override"] = new JArray() { "DoorOpen", "IgnitionOn" }
+                }
+            };
+
+            return await InitiateCommandAndWaitForSuccess("alert", reqObj);
+        }
+
+        /// <summary>
+        /// Stop remote alarm on the active vehicle and wait for completion
+        /// Privileged Command
+        /// </summary>
+        /// <returns>True or false for success</returns>
+        public async Task<bool> CancelAlert()
+        {
+            return await InitiateCommandAndWaitForSuccess("cancelAlert", null);
+        }
+
+        #endregion
+
+
+
     }
 }

@@ -25,17 +25,9 @@ namespace GM.WindowsUI
     /// </summary>
     public partial class MainWindow : Window
     {
-        GenericGMClient _client;
+        GMClientBase _client;
         
-
-        GmConfiguration _globalConfig;
-
-        ApiConfig _apiConfig;
-        BrandClientInfo _clientCredentials;
-
-        string _brand;
-        string _brandDisplay;
-
+        Brand _brand;
 
         Vehicle[] _vehicles = null;
 
@@ -44,7 +36,6 @@ namespace GM.WindowsUI
         public MainWindow()
         {
             InitializeComponent();
-            LoadConfiguration();
             LoadBrand();
             CreateClient();
             grpActions.IsEnabled = false;
@@ -60,7 +51,7 @@ namespace GM.WindowsUI
             }
 
             //todo: maybe the client reads the config and takes the brand and device id as param?
-            _client = new GenericGMClient(_clientCredentials.ClientId, Properties.Settings.Default.DeviceId, _clientCredentials.ClientSecret, _apiConfig.Url);
+            _client = new GMClientNoKey(Properties.Settings.Default.DeviceId, _brand, Properties.Settings.Default.TokenSignerUrl);
             _client.TokenUpdateCallback = TokenUpdateHandler;
 
             if (!string.IsNullOrEmpty(Properties.Settings.Default.LoginData))
@@ -100,52 +91,23 @@ namespace GM.WindowsUI
         {
             if (string.IsNullOrEmpty(Properties.Settings.Default.Brand))
             {
-                var bw = new BrandWindow(_globalConfig);
+                var bw = new BrandWindow();
                 bw.ShowDialog();
 
-                if (string.IsNullOrEmpty(bw.SelectedBrand))
+                if (!bw.SelectedBrand.HasValue)
                 {
                     MessageBox.Show("You must select a brand!");
                     Environment.Exit(100);
                     return;
                 }
 
-                Properties.Settings.Default.Brand = bw.SelectedBrand;
+                Properties.Settings.Default.Brand = bw.SelectedBrand.Value.GetName();
                 Properties.Settings.Default.Save();
             }
 
-            _brand = Properties.Settings.Default.Brand;
-            _brandDisplay = _brand.Substring(0, 1).ToUpperInvariant() + _brand.Substring(1);
+            _brand = BrandHelpers.GetBrand(Properties.Settings.Default.Brand);
 
-            Title = _brandDisplay + " Vehicle Control";
-
-            _clientCredentials = _globalConfig.BrandClientInfo[_brand];
-            _apiConfig = (from f in _globalConfig.Configs where f.Name.Equals(_brand, StringComparison.OrdinalIgnoreCase) select f).FirstOrDefault();
-        }
-
-        void LoadConfiguration()
-        {
-            if (!Directory.Exists("apk")) Directory.CreateDirectory("apk");
-
-            var fn = (from f in Directory.EnumerateFiles("apk") where System.IO.Path.GetExtension(f).Equals(".apk", StringComparison.OrdinalIgnoreCase) select f).FirstOrDefault();
-
-            if (string.IsNullOrEmpty(fn))
-            {
-                MessageBox.Show("You must copy the Android app's .apk file to the apk folder first.", "Missing apk");
-                Environment.Exit(100);
-                return;
-            }
-
-            try
-            {
-                _globalConfig = JsonConvert.DeserializeObject<GmConfiguration>(GM.SettingsReader.ReadUtility.Read(Properties.Resources.a, Properties.Resources.gm, File.OpenRead(fn)));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error reading config file: " + ex.ToString(), "Config read error");
-                Environment.Exit(100);
-                return;
-            }
+            Title = _brand.GetDisplayName() + " Vehicle Control";
         }
 
 

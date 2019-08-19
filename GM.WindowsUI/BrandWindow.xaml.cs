@@ -1,4 +1,5 @@
-﻿using GM.Api.Models;
+﻿using GM.Api;
+using GM.Api.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -22,27 +23,24 @@ namespace GM.WindowsUI
     /// </summary>
     public partial class BrandWindow : Window
     {
+        public Brand? SelectedBrand { get; set; } = null;
 
-        GmConfiguration _config;
-
-        public string SelectedBrand { get; set; } = null;
-
-
-        public BrandWindow(GmConfiguration configuration)
+        public BrandWindow()
         {
-            _config = configuration;
             InitializeComponent();
 
-            foreach (var brandName in _config.BrandClientInfo.Keys.OrderBy((val) => val, StringComparer.OrdinalIgnoreCase))
+            var brandNames = Enum.GetNames(typeof(Brand));
+
+            foreach (var brandName in brandNames.OrderBy((val) => val, StringComparer.OrdinalIgnoreCase))
             {
-                lstBrands.Items.Add(brandName.Substring(0, 1).ToUpperInvariant() + brandName.Substring(1));
+                lstBrands.Items.Add(brandName);
             }
         }
 
         private void BtnOk_Click(object sender, RoutedEventArgs e)
         {
             if (lstBrands.SelectedItem == null) return;
-            SelectedBrand = ((string)lstBrands.SelectedItem).ToLowerInvariant();
+            SelectedBrand = BrandHelpers.GetBrand((string)lstBrands.SelectedItem);
             this.Close();
         }
     }

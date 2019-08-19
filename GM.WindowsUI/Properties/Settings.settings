@@ -17,5 +17,8 @@
     <Setting Name="Vin" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="TokenSignerUrl" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">https://gmsigner.herokuapp.com/</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

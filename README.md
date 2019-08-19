@@ -15,20 +15,20 @@ You are accepting all responsibility and liability for the use of this content.
 # Client Credentials
 To use this API you will require a valid client id and client secret. The correct approach would be to request access from GM at https://developer.gm.com/ or by emailing them at developer.gm.com.
 
-Alternatively (and because GM refuses to respond to developer requests) you can extract the credentials from the Android app's .apk file.
-I am _NOT_ including the source code for this process, but I have included the capability. GM.SettingsReader.dll can do this. I have obfuscated the process.
+I have a utility that is capable of extracting the client credentials from the Android APK but I am _very_ hesitant to share. The client secrets get out and GM will freak out. So...
 
-IMPORTANT: The demo app requires a copy of the Android app's .apk file to be copied to the "apk" folder. It has been tested with the myChevrolet app, version 3.21.0.
-VERY IMPORTANT: Unless you want an international incident on your hands DO NOT SHARE ANY OF THE CONTENTS OF THE SETTINGS FILE ANYWHERE _EVER_!!!!
+I have implemented a very small, very simple web service hosted with heroku (https://gmsigner.herokuapp.com/) that will sign token requests for you,
+and I have implemented a version of the client that uses this service.
+(Please note that you will be sending your login credentials to this service. I would highly advise reviewing the service source code here: https://github.com/q39JzrRa/GM-Vehicle-API-AuthUtil . It is deployed to Heroku using CD from the master branch so the code you see is the code that runs)
 
 
 # Quick Start
 If you prefer not to use the Windows UI or examine how it works, here is how you might start your car if you only have one.
 
 ```
-            // Obtain Client ID, generate Device ID (GUID formatted as a string), Obtain Client Secret
+            // generate Device ID (GUID formatted as a string)
 
-            var client = new GenericGMClient("{client id}", "{deviceId}", "{client secret}", "https:\\api.gm.com\api");
+            var client = new GMClientNoKey("{deviceId}", Brand.Chevrolet, "https://gmsigner.herokuapp.com/");
             if (!await _client.Login("{ your username}", "{your password}")) { throw new InvalidOperationException("Login Failed"); }
             var vehicles = await _client.GetVehicles();
             if (vehicles == null || !vehicles.Any()) { throw new InvalidOperationException("No Vehicles on acccount"); }
