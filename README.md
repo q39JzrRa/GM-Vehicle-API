@@ -52,6 +52,10 @@ If you prefer not to use the Windows UI or examine how it works, here is how you
 * Get vehicle location
 * Send turn-by-turn route
 
+# References
+
+PYTHON Project doing something similar: https://github.com/sdague/mychevy
+
 
 # TODO
 This is very early, unpolished, incomplete code. No judgement please.
